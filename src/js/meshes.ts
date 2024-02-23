@@ -91,7 +91,15 @@ export const road = (texture?: string): [THREE.Mesh[], THREE.CurvePath<THREE.Vec
       const tangent = curve.getTangentAt(position);
       const segment = roadSegment();
       segment.position.set(point.x, point.y, 0);
-      //segment.rotateZ(tangent.angle());
+      //segment.rotateZ(tangent.angleTo());
+
+      const tangent2 = curve.getTangent(position).normalize();
+
+      const up = new THREE.Vector3(0, 1, 0);
+      const axis = new THREE.Vector3().crossVectors(up, tangent2).normalize();
+      const radians = Math.acos(up.dot(tangent2));
+
+      segment.quaternion.setFromAxisAngle(axis, radians);
 
       segments.push(segment);
 
