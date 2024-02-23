@@ -10,7 +10,7 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const geometry = new THREE.BoxGeometry(0.5, 1, 1);
+const geometry = new THREE.BoxGeometry(0.5, 1, 0.5);
 const geometry2 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
@@ -48,20 +48,21 @@ function updateCamera() {
   //const t3 = ((time + 0.101) % looptime) / looptime;
 
   const position = path.getPointAt(t);
-  const tangent = path.getTangent(t).normalize();
+  const tangent = path.getTangentAt(t).normalize();
 
   const up = new THREE.Vector3(0, 1, 0);
   const axis = new THREE.Vector3().crossVectors(up, tangent).normalize();
   const radians = Math.acos(up.dot(tangent));
 
+  //console.log("--", position.z);
+
   actor.position.copy(position);
   actor.quaternion.setFromAxisAngle(axis, radians);
+  console.log("--", actor.position.z);
 
   const cameraPosition = actor.position.clone().add(new THREE.Vector3(0, 0, 1).multiplyScalar(20));
 
-  //camera.position.copy(cameraPosition);
   camera.position.copy(cube2.getWorldPosition(new THREE.Vector3()));
-  //camera.lookAt(cube1.getWorldPosition(new THREE.Vector3()));
 
   //camera.quaternion.copy(cube2.getWorldQuaternion(new THREE.Quaternion()));
   const up2 = new THREE.Vector3(0, 1, 0);
@@ -69,6 +70,9 @@ function updateCamera() {
   const radians2 = Math.acos(up2.dot(tangent));
   //camera.quaternion.setFromAxisAngle(axis2, radians2);
   camera.quaternion.copy(cube2.getWorldQuaternion(new THREE.Quaternion()));
+
+  //camera.position.copy(cameraPosition);
+  //camera.lookAt(cube1.getWorldPosition(new THREE.Vector3()));
 }
 
 function animate() {

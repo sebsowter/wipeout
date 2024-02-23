@@ -34,28 +34,28 @@ export const roadSpine = (texture?: string) => {
   curvePath.add(
     new THREE.CatmullRomCurve3([
       new THREE.Vector3(-50, -50, 0),
-      new THREE.Vector3(0, -60, 0),
-      new THREE.Vector3(50, -50, 0),
+      new THREE.Vector3(0, -100, 10),
+      new THREE.Vector3(50, -50, 20),
     ])
   );
   curvePath.add(
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(50, -50, 0),
-      new THREE.Vector3(60, 0, 0),
+      new THREE.Vector3(50, -50, 20),
+      new THREE.Vector3(100, 0, 10),
       new THREE.Vector3(50, 50, 0),
     ])
   );
   curvePath.add(
     new THREE.CatmullRomCurve3([
       new THREE.Vector3(50, 50, 0),
-      new THREE.Vector3(0, 60, 0),
-      new THREE.Vector3(-50, 50, 0),
+      new THREE.Vector3(0, 100, -10),
+      new THREE.Vector3(-50, 50, -20),
     ])
   );
   curvePath.add(
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-50, 50, 0),
-      new THREE.Vector3(-60, 0, 0),
+      new THREE.Vector3(-50, 50, -20),
+      new THREE.Vector3(-100, 0, -10),
       new THREE.Vector3(-50, -50, 0),
     ])
   );
@@ -82,18 +82,15 @@ export const road = (texture?: string): [THREE.Mesh[], THREE.CurvePath<THREE.Vec
     const increment = step / lengthTotal;
 
     let i = 0;
-    console.log("length", lengthTotal);
-    console.log("count", count);
 
     while (i < count) {
       const position = i * increment;
       const point = curve.getPointAt(position);
       const tangent = curve.getTangentAt(position);
       const segment = roadSegment();
-      segment.position.set(point.x, point.y, 0);
-      //segment.rotateZ(tangent.angleTo());
+      segment.position.copy(point);
 
-      const tangent2 = curve.getTangent(position).normalize();
+      const tangent2 = curve.getTangentAt(position).normalize();
 
       const up = new THREE.Vector3(0, 1, 0);
       const axis = new THREE.Vector3().crossVectors(up, tangent2).normalize();
