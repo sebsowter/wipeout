@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { road } from "./src/js/meshes";
+import { getAxisAngle, road } from "./src/js/meshes";
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -14,7 +14,7 @@ enum CameraModes {
 
 const cameraMode: CameraModes = CameraModes.PLAYER;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const geometry = new THREE.BoxGeometry(0.5, 1, 0.5);
 const geometry2 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
@@ -30,10 +30,7 @@ cube1.position.setZ(2);
 cube2.position.setY(-2);
 cube2.position.setZ(1);
 
-//const controls = new OrbitControls(camera, renderer.domElement);
-
-camera.position.z = 100;
-
+//const controls = new OrbitControls(camera, renderer.domElement)
 //controls.update();
 
 const [roadMeshes, path] = road();
@@ -52,13 +49,9 @@ function updateCamera() {
   const time = clock.getElapsedTime();
   const looptime = 20;
   const point = (time % looptime) / looptime;
-
   const position = path.getPointAt(point);
   const tangent = path.getTangentAt(point).normalize();
-
-  const up = new THREE.Vector3(0, 1, 0);
-  const axis = new THREE.Vector3().crossVectors(up, tangent).normalize();
-  const radians = Math.acos(up.dot(tangent));
+  const [axis, radians] = getAxisAngle(new THREE.Vector3(0, 1, 0), tangent);
 
   actor.position.copy(position);
   actor.quaternion.setFromAxisAngle(axis, radians);
@@ -72,7 +65,6 @@ function updateCamera() {
     case CameraModes.BIRD:
     default:
       const cameraPosition = actor.position.clone().add(new THREE.Vector3(0, 0, 1).multiplyScalar(100));
-
       camera.position.copy(cameraPosition);
       camera.lookAt(cube1.getWorldPosition(new THREE.Vector3()));
       break;
