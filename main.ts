@@ -1,16 +1,15 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { getAxisAngle, road } from "./src/js/meshes";
-
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
 enum CameraModes {
   PLAYER,
   BIRD,
 }
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+document.body.appendChild(renderer.domElement);
 
 const cameraMode: CameraModes = CameraModes.PLAYER;
 const scene = new THREE.Scene();
@@ -23,18 +22,16 @@ const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
 
 const cube = new THREE.Mesh(geometry, material);
-const cube2 = new THREE.Mesh(geometry2, material2);
 const cube1 = new THREE.Mesh(geometry2, material2);
+const cube2 = new THREE.Mesh(geometry2, material2);
 cube1.position.setY(-4);
 cube1.position.setZ(2);
 cube2.position.setY(-2);
 cube2.position.setZ(1);
 
-//const controls = new OrbitControls(camera, renderer.domElement)
-//controls.update();
+const [flows, path] = road();
 
-const [roadMeshes, path] = road();
-scene.add(...roadMeshes);
+scene.add(...flows.map(({ object3D }) => object3D));
 
 const actor = new THREE.Group();
 const clock = new THREE.Clock();
@@ -45,16 +42,100 @@ actor.add(cube1);
 scene.add(actor);
 cube2.lookAt(cube1.position);
 
+// ----------------------------------
+const vector10 = new THREE.Vector3();
+const vector11 = new THREE.Vector3();
+const forward = new THREE.Vector3();
+const right = new THREE.Vector3();
+const pos1 = new THREE.Vector3();
+const pos2 = new THREE.Vector3();
+const up = new THREE.Vector3();
+const offset = new THREE.Vector3();
+const quaternion = new THREE.Quaternion();
+
+for (let i = 0; i < 999; i++) {
+  let p1 = path.getPointAt(i / 1000);
+  let p2 = path.getPointAt((i + 1) / 1000);
+
+  const tangent = path.getTangentAt(i / 1000).normalize();
+  const [axis, radians] = getAxisAngle(new THREE.Vector3(0, 1, 0), tangent);
+  up.set(0, 1, 0);
+  forward.subVectors(p1, p2).normalize();
+  right.crossVectors(up, forward).normalize();
+  up.crossVectors(forward, right);
+
+  // forward
+  // debugLine(blue, p1, p1.clone().add(forward));
+  // debugLine(blue, p1, p1.clone().add(right));
+  // debugLine(blue, p1, p1.clone().add(up));
+
+  // curve.getTangentAt(i / 1000, tangent);
+  const angle = Math.atan2(-forward.x, -forward.z);
+  //quaternion.setFromAxisAngle(axis, radians);
+  quaternion.setFromAxisAngle(up, angle);
+
+  let ah = new THREE.AxesHelper(5);
+  ah.position.copy(p1);
+  ah.applyQuaternion(quaternion);
+  scene.add(ah);
+}
+
 function updateCamera() {
   const time = clock.getElapsedTime();
   const looptime = 20;
   const point = (time % looptime) / looptime;
+  const t2 = ((time + 0.1) % looptime) / looptime;
+  //const t3 = ((time + 0.101) % looptime) / looptime;
+
   const position = path.getPointAt(point);
+  const position2 = path.getPointAt(point);
   const tangent = path.getTangentAt(point).normalize();
   const [axis, radians] = getAxisAngle(new THREE.Vector3(0, 1, 0), tangent);
+  const [axis2, radians2] = getAxisAngle(new THREE.Vector3(1, 0, 0), tangent);
+
+  //path.arcLengthDivisions = 100 / 2;
+  //path.updateArcLengths();
+
+  //const points = path.getSpacedPoints(100);
+  //const frenetFrames = path.computeFrenetFrames(100, true);
 
   actor.position.copy(position);
-  actor.quaternion.setFromAxisAngle(axis, radians);
+  actor.setRotationFromAxisAngle(axis, radians);
+  //actor.setRotationFromAxisAngle(axis2, radians2);
+  //actor.quaternion.set(actor.quaternion.x, 0, actor.quaternion.z, actor.quaternion.w);
+  console.log("actor.quaternion", actor.quaternion);
+  //actor.setRotationFromQuaternion()
+
+  // ----------------------------------
+
+  path.getPointAt(point, pos1);
+  path.getPointAt(t2, pos2);
+
+  up.set(0, 1, 0);
+  forward.subVectors(pos1, pos2).normalize();
+  right.crossVectors(up, forward).normalize();
+  //up.crossVectors(forward, right);
+
+  const angle = Math.atan2(-forward.x, -forward.y);
+  quaternion.setFromAxisAngle(up, angle);
+
+  // left side of track
+  vector10.copy(offset.set(-0.2, 0, 0));
+  vector10.applyQuaternion(quaternion);
+  vector10.add(pos1);
+
+  // right side of track
+  vector11.copy(offset.set(0.2, 0, 0));
+  vector11.applyQuaternion(quaternion);
+  vector11.add(pos1);
+
+  //actor.matrix.lookAt(vector10, vector11, up);
+
+  //actor.quaternion.setFromRotationMatrix(actor.matrix);
+  //actor.setRotationFromAxisAngle(axis, radians);
+  //actor.position.copy(pos1);
+
+  // ----------------------------------
 
   switch (cameraMode) {
     case CameraModes.PLAYER:
@@ -64,7 +145,7 @@ function updateCamera() {
 
     case CameraModes.BIRD:
     default:
-      const cameraPosition = actor.position.clone().add(new THREE.Vector3(0, 0, 1).multiplyScalar(100));
+      const cameraPosition = actor.position.clone().add(new THREE.Vector3(0, 0, 1).multiplyScalar(80));
       camera.position.copy(cameraPosition);
       camera.lookAt(cube1.getWorldPosition(new THREE.Vector3()));
       break;
