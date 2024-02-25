@@ -13,7 +13,7 @@ document.body.appendChild(renderer.domElement);
 
 const cameraMode: CameraModes = CameraModes.PLAYER;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const geometry = new THREE.BoxGeometry(0.5, 0.5, 1);
 const geometry2 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
@@ -29,9 +29,9 @@ cube1.position.setY(2);
 cube2.position.setZ(-2);
 cube2.position.setY(1);
 
-const [flows, path] = road();
+const [flows, path] = road(scene);
 
-scene.add(...flows.map(({ object3D }) => object3D));
+//scene.add(...flows.map(({ object3D }) => object3D));
 
 const actor = new THREE.Group();
 const clock = new THREE.Clock();
@@ -54,12 +54,14 @@ const offset = new THREE.Vector3();
 const quaternion = new THREE.Quaternion();
 const dummy = new THREE.Object3D();
 
+/*
 for (let i = 0; i < 999; i++) {
   let p1 = path.getPointAt(i / 1000);
   let p2 = path.getPointAt((i + 1) / 1000);
 
   const tangent = path.getTangentAt(i / 1000).normalize();
   const [axis, radians] = getAxisAngle(new THREE.Vector3(0, 1, 0), tangent);
+
   up.set(0, 1, 0);
   forward.subVectors(p1, p2).normalize();
   right.crossVectors(up, forward).normalize();
@@ -80,6 +82,7 @@ for (let i = 0; i < 999; i++) {
   ah.applyQuaternion(quaternion);
   scene.add(ah);
 }
+*/
 
 function updateCamera() {
   const time = clock.getElapsedTime();
@@ -105,7 +108,7 @@ function updateCamera() {
   //actor.setRotationFromAxisAngle(axis, radians);
   //actor.setRotationFromAxisAngle(axis2, radians2);
   //actor.quaternion.set(actor.quaternion.x, 0, actor.quaternion.z, actor.quaternion.w);
-  console.log("actor.quaternion", actor.quaternion);
+  //console.log("actor.quaternion", actor.quaternion);
   //actor.setRotationFromQuaternion()
 
   // ----------------------------------
@@ -155,9 +158,9 @@ function updateCamera() {
 
     case CameraModes.BIRD:
     default:
-      const cameraPosition = actor.position.clone().add(new THREE.Vector3(0, 1, 0).multiplyScalar(80));
+      const cameraPosition = new THREE.Vector3(0, 0, 0).add(new THREE.Vector3(0, 1, 0).multiplyScalar(80));
       camera.position.copy(cameraPosition);
-      camera.lookAt(cube1.getWorldPosition(new THREE.Vector3()));
+      camera.lookAt(actor.getWorldPosition(new THREE.Vector3()));
       break;
   }
 }
