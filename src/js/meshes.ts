@@ -1,6 +1,20 @@
 import * as THREE from "three";
 import { InstancedFlow } from "three/examples/jsm/modifiers/CurveModifier.js";
 
+export const building = () => {
+  const groundTexture3 = new THREE.TextureLoader().load("./src/assets/images/track3.png");
+
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xcccccc,
+    map: groundTexture3,
+  });
+
+  const geometry = new THREE.BoxGeometry(16, 16, 16);
+  const mesh = new THREE.Mesh(geometry, material);
+
+  return mesh;
+};
+
 export const roadSegment = () => {
   const flowsX = 16;
   const flowsY = 16;
@@ -11,7 +25,11 @@ export const roadSegment = () => {
   for (let i = 0; i < positionAttribute.count; i++) {
     vertex.fromBufferAttribute(positionAttribute, i);
 
-    const z = i % (flowsX + 1) < Math.round(flowsX * 0.25) || i % (flowsX + 1) > Math.round(flowsX * 0.75) ? 0.5 : 0;
+    let z = i % (flowsX + 1) < Math.round(flowsX * 0.25) || i % (flowsX + 1) > Math.round(flowsX * 0.75) ? 0.5 : 0;
+
+    if (i % (flowsX + 1) === 0 || i % (flowsX + 1) === flowsX) {
+      z = -0.5;
+    }
 
     positionAttribute.setXYZ(i, vertex.x, vertex.y, z);
   }
@@ -41,22 +59,22 @@ export const roadSpine = () => {
       new THREE.Vector3(16, 0, -48)
     )
   );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, -48), new THREE.Vector3(16, 0, -88)));
+  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, -48), new THREE.Vector3(16, 2, -88)));
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(16, 0, -88),
-      new THREE.Vector3(16, 0, -96),
-      new THREE.Vector3(8, 0, -96)
+      new THREE.Vector3(16, 2, -88),
+      new THREE.Vector3(16, 2, -96),
+      new THREE.Vector3(8, 2, -96)
     )
   );
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(8, 0, -96),
-      new THREE.Vector3(0, 0, -96),
-      new THREE.Vector3(0, 0, -88)
+      new THREE.Vector3(8, 2, -96),
+      new THREE.Vector3(0, 2, -96),
+      new THREE.Vector3(0, 2, -88)
     )
   );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 0, -88), new THREE.Vector3(0, 0, -64)));
+  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 2, -88), new THREE.Vector3(0, 0, -64)));
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
       new THREE.Vector3(0, 0, -64),
@@ -87,7 +105,20 @@ export const roadSpine = () => {
       new THREE.Vector3(0, 8, 32)
     )
   );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 8, 32), new THREE.Vector3(0, 0, 16)));
+  curvePath.add(
+    new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(0, 8, 32),
+      new THREE.Vector3(0, 7.5, 28),
+      new THREE.Vector3(0, 4, 24)
+    )
+  );
+  curvePath.add(
+    new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(0, 4, 24),
+      new THREE.Vector3(0, 0.5, 20),
+      new THREE.Vector3(0, 0, 16)
+    )
+  );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 0, 16), new THREE.Vector3(0, 0, 0)));
   /*
   curvePath.add(
@@ -113,6 +144,18 @@ export const roadSpine = () => {
 
 export const road = (scene: THREE.Scene, texture?: string): [InstancedFlow[], THREE.CurvePath<THREE.Vector3>] => {
   const spline = roadSpine();
+  const byi = building();
+  byi.position.set(-16, 8, 32);
+  scene.add(byi);
+  const by2 = building();
+  by2.position.set(-16, 0, 0);
+  scene.add(by2);
+  const by3 = building();
+  by3.position.set(16, 0, 0);
+  scene.add(by3);
+  const by4 = building();
+  by4.position.set(16, 8, 32);
+  scene.add(by4);
   const geometry = roadSegment();
   const groundTexture1 = new THREE.TextureLoader().load("./src/assets/images/track1.png");
   const groundTexture2 = new THREE.TextureLoader().load("./src/assets/images/track2.png");

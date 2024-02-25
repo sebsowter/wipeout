@@ -13,13 +13,26 @@ document.body.appendChild(renderer.domElement);
 
 const cameraMode: CameraModes = CameraModes.PLAYER;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const geometry = new THREE.BoxGeometry(0.5, 0.5, 1);
 const geometry2 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 
 const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+
+/*
+const skyMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, map: skyTexture, side: THREE.BackSide });
+const box = new THREE.BoxGeometry(512, 512, 512);
+const sky = new THREE.Mesh(box, skyMaterial);
+scene.add(sky);
+*/
+
+scene.background = new THREE.CubeTextureLoader()
+  .setPath("./src/assets/images/sky/")
+  .load(["skyright.png", "skyleft.png", "skytop.png", "skybottom.png", "skyfront.png", "skyback.png"]);
+scene.background.minFilter = THREE.NearestFilter;
+scene.background.magFilter = THREE.NearestFilter;
 
 const cube = new THREE.Mesh(geometry, material);
 const cube1 = new THREE.Mesh(geometry2, material2);
