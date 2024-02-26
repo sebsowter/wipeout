@@ -1,8 +1,14 @@
 import * as THREE from "three";
 import { InstancedFlow } from "three/examples/jsm/modifiers/CurveModifier.js";
+import buildingUrl from "../assets/images/building.png";
+import pillarUrl from "../assets/images/pillar.png";
+import screenUrl from "../assets/images/screenFront.png";
+import track1Url from "../assets/images/track1.png";
+import track2Url from "../assets/images/track2.png";
+import track3Url from "../assets/images/track3.png";
 
 export const building = (position: THREE.Vector3) => {
-  const texture = new THREE.TextureLoader().load("./src/assets/images/building.png");
+  const texture = new THREE.TextureLoader().load(buildingUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
   const material = new THREE.MeshBasicMaterial({
@@ -17,7 +23,7 @@ export const building = (position: THREE.Vector3) => {
 };
 
 export const pillar = (position: THREE.Vector3) => {
-  const texture = new THREE.TextureLoader().load("./src/assets/images/pillar.png");
+  const texture = new THREE.TextureLoader().load(pillarUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
   const material = new THREE.MeshBasicMaterial({
@@ -34,7 +40,7 @@ export const pillar = (position: THREE.Vector3) => {
 };
 
 export const cylinder = (position: THREE.Vector3) => {
-  const texture = new THREE.TextureLoader().load("./src/assets/images/building.png");
+  const texture = new THREE.TextureLoader().load(buildingUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
   const material = new THREE.MeshBasicMaterial({
@@ -50,7 +56,7 @@ export const cylinder = (position: THREE.Vector3) => {
 };
 
 export const overhead = (position: THREE.Vector3) => {
-  const texture = new THREE.TextureLoader().load("./src/assets/images/screenFront.png");
+  const texture = new THREE.TextureLoader().load(screenUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
   const material = new THREE.MeshBasicMaterial({
@@ -245,7 +251,7 @@ export const roadSpine = () => {
   return curvePath;
 };
 
-export const road = (scene: THREE.Scene): THREE.CurvePath<THREE.Vector3> => {
+export const road = (scene: THREE.Scene, spline: THREE.CurvePath<THREE.Vector3>) => {
   scene.add(building(new THREE.Vector3(-16, 8, 32)));
   scene.add(building(new THREE.Vector3(-16, 0, 0)));
   scene.add(building(new THREE.Vector3(16, 0, 0)));
@@ -255,12 +261,11 @@ export const road = (scene: THREE.Scene): THREE.CurvePath<THREE.Vector3> => {
   scene.add(pillar(new THREE.Vector3(9, 0, -32)));
   scene.add(pillar(new THREE.Vector3(-9, 0, -32)));
 
-  const spline = roadSpine();
   const defaultGeometry = roadSegment();
   const cornerGeometry = roadSegment1();
-  const groundTexture1 = new THREE.TextureLoader().load("./src/assets/images/track1.png");
-  const groundTexture2 = new THREE.TextureLoader().load("./src/assets/images/track2.png");
-  const groundTexture3 = new THREE.TextureLoader().load("./src/assets/images/track3.png");
+  const groundTexture1 = new THREE.TextureLoader().load(track1Url);
+  const groundTexture2 = new THREE.TextureLoader().load(track2Url);
+  const groundTexture3 = new THREE.TextureLoader().load(track3Url);
   groundTexture1.minFilter = THREE.NearestFilter;
   groundTexture1.magFilter = THREE.NearestFilter;
   groundTexture2.minFilter = THREE.NearestFilter;
@@ -323,6 +328,4 @@ export const road = (scene: THREE.Scene): THREE.CurvePath<THREE.Vector3> => {
       }
     }
   });
-
-  return spline;
 };
