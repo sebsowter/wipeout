@@ -6,6 +6,7 @@ import skytop from "./src/assets/images/sky/skytop.png";
 import skybottom from "./src/assets/images/sky/skybottom.png";
 import skyfront from "./src/assets/images/sky/skyfront.png";
 import skyback from "./src/assets/images/sky/skyback.png";
+import displacement from "./src/assets/images/displacement.png";
 
 enum CameraModes {
   PLAYER,
@@ -23,12 +24,12 @@ function rgbToHex(r: number, g: number, b: number) {
   return "#" + componentToHex(Math.floor(r)) + componentToHex(Math.floor(g)) + componentToHex(Math.floor(b));
 }
 
-const cameraMode: CameraModes = CameraModes.MAP;
+const cameraMode: CameraModes = CameraModes.PLAYER;
+
+const width = 512;
+const height = 1024;
 
 const createHeightMap = (curve: THREE.CurvePath<THREE.Vector3>) => {
-  const width = 512;
-  const height = 1024;
-
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -54,7 +55,7 @@ const createHeightMap = (curve: THREE.CurvePath<THREE.Vector3>) => {
     context.closePath();
   });
 
-  const imageData = context.getImageData(0, 0, width, height);
+  context.getImageData(0, 0, width, height);
 };
 
 const geometry1 = new THREE.BoxGeometry(0.25, 0.25, 0.25);
@@ -69,10 +70,47 @@ const futurePosition = new THREE.Vector3();
 const actor = new THREE.Group();
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
+const cameraPosition = new THREE.Vector3();
 const clock = new THREE.Clock();
 const spline = roadSpine();
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+
+let imageData: ImageData = undefined;
+
+const imageTexture = new THREE.TextureLoader().load(displacement, (texture) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = texture.image.width;
+  canvas.height = texture.image.height;
+
+  const context = canvas.getContext("2d");
+  context.drawImage(texture.image, 0, 0);
+
+  imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+});
+
+function getPositionMap(position: THREE.Vector3) {
+  const x = Math.floor(512 / 2 + position.x * 5);
+  const y = Math.floor(1024 / 2 + position.z * 5);
+  const start = Math.floor(y * width + x) * 4;
+
+  if (imageData) {
+    const r = imageData.data[start];
+    const b = imageData.data[start + 2];
+    // console.log("r", r);
+    //console.log("b", b);
+
+    if (r === 255 && b === 255) {
+      return undefined;
+    }
+
+    return (b / 255) * 8.5;
+  }
+
+  return undefined;
+}
+
+let z = 0;
 
 function updateCamera() {
   const time = clock.getElapsedTime();
@@ -88,14 +126,23 @@ function updateCamera() {
 
   switch (cameraMode) {
     case CameraModes.PLAYER:
-      camera.position.copy(cube2.getWorldPosition(new THREE.Vector3()));
+      cube2.getWorldPosition(cameraPosition);
+      const collision = getPositionMap(actor.position);
+
+      if (collision === undefined) {
+        console.log("collide!");
+      } else {
+        //console.log("collision", collision);
+        actor.position.setY(collision);
+      }
+
+      camera.position.copy(cameraPosition);
       camera.quaternion.copy(cube2.getWorldQuaternion(new THREE.Quaternion()));
       break;
 
     case CameraModes.BIRD:
     default:
-      const cameraPosition = new THREE.Vector3(0, 0, 0).add(new THREE.Vector3(0, 1, 0).multiplyScalar(50));
-      camera.position.copy(cameraPosition);
+      camera.position.copy(new THREE.Vector3(0, 0, 0).add(new THREE.Vector3(0, 1, 0).multiplyScalar(50)));
       camera.lookAt(actor.getWorldPosition(new THREE.Vector3()));
       break;
   }
