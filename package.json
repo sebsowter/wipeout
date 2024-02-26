@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "deploy": "npm run build && gh-pages -d dist"
+  },
   "dependencies": {
     "@types/three": "^0.161.2",
     "three": "^0.161.0"
