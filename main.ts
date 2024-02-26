@@ -15,7 +15,7 @@ const cameraMode: CameraModes = CameraModes.PLAYER;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-const geometry = new THREE.BoxGeometry(0.5, 0.5, 1);
+const geometry = new THREE.BoxGeometry(0.25, 0.25, 0.25);
 const geometry2 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 
 const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
@@ -31,16 +31,16 @@ scene.add(sky);
 scene.background = new THREE.CubeTextureLoader()
   .setPath("./src/assets/images/sky/")
   .load(["skyright.png", "skyleft.png", "skytop.png", "skybottom.png", "skyfront.png", "skyback.png"]);
-scene.background.minFilter = THREE.NearestFilter;
-scene.background.magFilter = THREE.NearestFilter;
+//scene.background.minFilter = THREE.NearestFilter;
+//scene.background.magFilter = THREE.NearestFilter;
 
 const cube = new THREE.Mesh(geometry, material);
 const cube1 = new THREE.Mesh(geometry2, material2);
 const cube2 = new THREE.Mesh(geometry2, material2);
 cube1.position.setZ(-4);
-cube1.position.setY(2);
+cube1.position.setY(1);
 cube2.position.setZ(-2);
-cube2.position.setY(1);
+cube2.position.setY(0.5);
 
 const [flows, path] = road(scene);
 
@@ -171,9 +171,10 @@ function updateCamera() {
 
     case CameraModes.BIRD:
     default:
-      const cameraPosition = new THREE.Vector3(0, 0, 0).add(new THREE.Vector3(0, 1, 0).multiplyScalar(80));
+      const cameraPosition = new THREE.Vector3(0, 0, 0).add(new THREE.Vector3(0, 1, 0).multiplyScalar(50));
       camera.position.copy(cameraPosition);
       camera.lookAt(actor.getWorldPosition(new THREE.Vector3()));
+      //camera.position.lerp()
       break;
   }
 }

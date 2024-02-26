@@ -2,10 +2,10 @@ import * as THREE from "three";
 import { InstancedFlow } from "three/examples/jsm/modifiers/CurveModifier.js";
 
 export const building = () => {
-  const groundTexture3 = new THREE.TextureLoader().load("./src/assets/images/track3.png");
+  const groundTexture3 = new THREE.TextureLoader().load("./src/assets/images/building.png");
 
   const material = new THREE.MeshBasicMaterial({
-    color: 0xcccccc,
+    color: 0x999999,
     map: groundTexture3,
   });
 
@@ -13,6 +13,69 @@ export const building = () => {
   const mesh = new THREE.Mesh(geometry, material);
 
   return mesh;
+};
+
+export const signinmg = () => {
+  const groundTexture3 = new THREE.TextureLoader().load("./src/assets/images/track3.png");
+
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x999999,
+    map: groundTexture3,
+  });
+
+  const geometry = new THREE.BoxGeometry(16, 4, 1);
+  const mesh = new THREE.Mesh(geometry, material);
+
+  return mesh;
+};
+
+export const roadSegment1 = () => {
+  const flowsX = 16;
+  const flowsY = 16;
+  const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
+  const vertex = new THREE.Vector3();
+  const positionAttribute = geometry.attributes.position;
+
+  for (let i = 0; i < positionAttribute.count; i++) {
+    vertex.fromBufferAttribute(positionAttribute, i);
+
+    const indexX = i % (flowsX + 1);
+
+    let z = 0;
+    let x = vertex.x;
+
+    if (indexX < 4 || indexX === 13) {
+      z = 0.5;
+    }
+
+    if (indexX === 14) {
+      z = 1.4;
+      x = 2;
+    }
+
+    if (indexX === 15) {
+      z = 1.5;
+      x = 2;
+    }
+
+    if (indexX === 16) {
+      z = 1.5;
+      x = 2.5;
+    }
+
+    if (indexX > 16) {
+      z = 0;
+      x = 2.5;
+    }
+
+    positionAttribute.setXYZ(i, x, vertex.y, z);
+  }
+
+  geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
+  geometry.attributes.position.needsUpdate = true;
+  geometry.computeVertexNormals();
+
+  return geometry;
 };
 
 export const roadSegment = () => {
@@ -25,13 +88,25 @@ export const roadSegment = () => {
   for (let i = 0; i < positionAttribute.count; i++) {
     vertex.fromBufferAttribute(positionAttribute, i);
 
-    let z = i % (flowsX + 1) < Math.round(flowsX * 0.25) || i % (flowsX + 1) > Math.round(flowsX * 0.75) ? 0.5 : 0;
+    const indexX = i % (flowsX + 1);
 
-    if (i % (flowsX + 1) === 0 || i % (flowsX + 1) === flowsX) {
-      z = -0.5;
+    let z = 0;
+    let x = vertex.x;
+
+    if (indexX === 2 || indexX === 3 || indexX === 13 || indexX === 14) {
+      z = 0.5;
     }
 
-    positionAttribute.setXYZ(i, vertex.x, vertex.y, z);
+    if (indexX === 1 || indexX === 15) {
+      z = 0;
+    }
+
+    if (indexX === 0 || indexX === 16) {
+      z = 0;
+      x = 0;
+    }
+
+    positionAttribute.setXYZ(i, x, vertex.y, z);
   }
 
   geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
@@ -43,7 +118,6 @@ export const roadSegment = () => {
 
 export const roadSpine = () => {
   const curvePath = new THREE.CurvePath<THREE.Vector3>();
-  //curvePath.autoClose = false;
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -32)));
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
@@ -59,7 +133,20 @@ export const roadSpine = () => {
       new THREE.Vector3(16, 0, -48)
     )
   );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, -48), new THREE.Vector3(16, 2, -88)));
+  curvePath.add(
+    new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(16, 0, -48),
+      new THREE.Vector3(16, 0, -58),
+      new THREE.Vector3(16, 1, -68)
+    )
+  );
+  curvePath.add(
+    new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(16, 1, -68),
+      new THREE.Vector3(16, 2, -78),
+      new THREE.Vector3(16, 2, -88)
+    )
+  );
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
       new THREE.Vector3(16, 2, -88),
@@ -74,23 +161,21 @@ export const roadSpine = () => {
       new THREE.Vector3(0, 2, -88)
     )
   );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 2, -88), new THREE.Vector3(0, 0, -64)));
   curvePath.add(
-    new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(0, 0, -64),
-      new THREE.Vector3(0, 0, -48),
-      new THREE.Vector3(-16, 0, -48)
+    new THREE.CatmullRomCurve3(
+      [
+        new THREE.Vector3(0, 2, -88),
+        new THREE.Vector3(0, 2, -72),
+        new THREE.Vector3(-4, 1, -64),
+        new THREE.Vector3(-16, 1, -48),
+        new THREE.Vector3(-32, 2, -32),
+        new THREE.Vector3(-32, 4, 0),
+        new THREE.Vector3(-32, 8, 20),
+        new THREE.Vector3(-32, 8, 32),
+      ],
+      false
     )
   );
-  curvePath.add(
-    new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-16, 0, -48),
-      new THREE.Vector3(-32, 0, -48),
-      new THREE.Vector3(-32, 0, -32)
-    )
-  );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(-32, 0, -32), new THREE.Vector3(-32, 0, 0)));
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(-32, 0, 0), new THREE.Vector3(-32, 8, 32)));
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
       new THREE.Vector3(-32, 8, 32),
@@ -108,36 +193,18 @@ export const roadSpine = () => {
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
       new THREE.Vector3(0, 8, 32),
-      new THREE.Vector3(0, 7.5, 28),
+      new THREE.Vector3(0, 8, 28),
       new THREE.Vector3(0, 4, 24)
     )
   );
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
       new THREE.Vector3(0, 4, 24),
-      new THREE.Vector3(0, 0.5, 20),
+      new THREE.Vector3(0, 0, 20),
       new THREE.Vector3(0, 0, 16)
     )
   );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 0, 16), new THREE.Vector3(0, 0, 0)));
-  /*
-  curvePath.add(
-    new THREE.CatmullRomCurve3(
-      [
-        new THREE.Vector3(-32, 0, -32),
-        new THREE.Vector3(-48, 0, -16),
-        new THREE.Vector3(-64, 0, 0),
-        new THREE.Vector3(-64, 4, 32),
-        new THREE.Vector3(-48, 8, 48),
-        new THREE.Vector3(-16, 8, 48),
-        new THREE.Vector3(0, 4, 40),
-        new THREE.Vector3(0, 0, 32),
-      ],
-      false,
-      "centripetal"
-    )
-  );
-  */
 
   return curvePath;
 };
@@ -156,7 +223,17 @@ export const road = (scene: THREE.Scene, texture?: string): [InstancedFlow[], TH
   const by4 = building();
   by4.position.set(16, 8, 32);
   scene.add(by4);
+
+  const by5 = signinmg();
+  by5.position.set(0, 4, 0);
+  scene.add(by5);
+
+  const by6 = signinmg();
+  by6.position.set(0, 4, -32);
+  scene.add(by6);
+
   const geometry = roadSegment();
+  const geometry1 = roadSegment1();
   const groundTexture1 = new THREE.TextureLoader().load("./src/assets/images/track1.png");
   const groundTexture2 = new THREE.TextureLoader().load("./src/assets/images/track2.png");
   const groundTexture3 = new THREE.TextureLoader().load("./src/assets/images/track3.png");
@@ -169,7 +246,7 @@ export const road = (scene: THREE.Scene, texture?: string): [InstancedFlow[], TH
   groundTexture3.magFilter = THREE.NearestFilter;
 
   const material1 = new THREE.MeshBasicMaterial({
-    color: 0xcccccc,
+    color: 0x999999,
     map: groundTexture1,
   });
   const material2 = new THREE.MeshBasicMaterial({
@@ -194,7 +271,7 @@ export const road = (scene: THREE.Scene, texture?: string): [InstancedFlow[], TH
   //flow2.updateCurve(0, spline);
   flows.push(flow2);
 
-  const flow3 = new InstancedFlow(stepCountRounded, 1, geometry, material2);
+  const flow3 = new InstancedFlow(stepCountRounded, 1, geometry1, material2);
   //flow3.updateCurve(0, spline);
   flows.push(flow3);
 
@@ -229,7 +306,7 @@ export const road = (scene: THREE.Scene, texture?: string): [InstancedFlow[], TH
         //flow.object3D.setColorAt(i, new THREE.Color(0xffffff * Math.random()));
       }
 
-      for (let i = 79; i < 88; i++) {
+      for (let i = 79; i < stepCountRounded; i++) {
         //flow.setCurve(i, 0);
         flow.moveIndividualAlongCurve(i, i * inc);
         //flow.object3D.setColorAt(i, new THREE.Color(0xffffff * Math.random()));
