@@ -27,7 +27,6 @@ export const pillar = (position: THREE.Vector3) => {
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
   const material = new THREE.MeshBasicMaterial({
-    //color: 0xcccccc,
     transparent: true,
     map: texture,
   });
@@ -71,7 +70,7 @@ export const overhead = (position: THREE.Vector3) => {
   return mesh;
 };
 
-export const roadSegment1 = () => {
+export const roadSegmentCorner = () => {
   const flowsX = 16;
   const flowsY = 16;
   const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
@@ -120,7 +119,7 @@ export const roadSegment1 = () => {
   return geometry;
 };
 
-export const roadSegment = () => {
+export const roadSegmentDefault = () => {
   const flowsX = 16;
   const flowsY = 16;
   const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
@@ -251,18 +250,19 @@ export const roadSpine = () => {
   return curvePath;
 };
 
-export const road = (scene: THREE.Scene, spline: THREE.CurvePath<THREE.Vector3>) => {
-  scene.add(building(new THREE.Vector3(-16, 8, 32)));
-  scene.add(building(new THREE.Vector3(-16, 0, 0)));
-  scene.add(building(new THREE.Vector3(16, 0, 0)));
-  scene.add(building(new THREE.Vector3(16, 8, 32)));
-  scene.add(overhead(new THREE.Vector3(0, 4, -32)));
-  scene.add(cylinder(new THREE.Vector3(8, 2, -88)));
-  scene.add(pillar(new THREE.Vector3(9, 0, -32)));
-  scene.add(pillar(new THREE.Vector3(-9, 0, -32)));
+export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
+  const object3D = new THREE.Object3D();
+  object3D.add(building(new THREE.Vector3(-16, 8, 32)));
+  object3D.add(building(new THREE.Vector3(-16, 0, 0)));
+  object3D.add(building(new THREE.Vector3(16, 0, 0)));
+  object3D.add(building(new THREE.Vector3(16, 8, 32)));
+  object3D.add(overhead(new THREE.Vector3(0, 4, -32)));
+  object3D.add(cylinder(new THREE.Vector3(8, 2, -88)));
+  object3D.add(pillar(new THREE.Vector3(9, 0, -32)));
+  object3D.add(pillar(new THREE.Vector3(-9, 0, -32)));
 
-  const defaultGeometry = roadSegment();
-  const cornerGeometry = roadSegment1();
+  const defaultGeometry = roadSegmentDefault();
+  const cornerGeometry = roadSegmentCorner();
   const groundTexture1 = new THREE.TextureLoader().load(track1Url);
   const groundTexture2 = new THREE.TextureLoader().load(track2Url);
   const groundTexture3 = new THREE.TextureLoader().load(track3Url);
@@ -300,7 +300,7 @@ export const road = (scene: THREE.Scene, spline: THREE.CurvePath<THREE.Vector3>)
     new InstancedFlow(stepCountRounded, 1, defaultGeometry, material3),
   ].forEach((flow, index) => {
     flow.updateCurve(0, spline);
-    scene.add(flow.object3D);
+    object3D.add(flow.object3D);
 
     if (index === 0) {
       for (let i = 0; i < 43; i++) {
@@ -328,4 +328,6 @@ export const road = (scene: THREE.Scene, spline: THREE.CurvePath<THREE.Vector3>)
       }
     }
   });
+
+  return object3D;
 };
