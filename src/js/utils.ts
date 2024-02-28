@@ -11,7 +11,7 @@ export function rgbToHex(r: number, g: number, b: number) {
 }
 
 export function pointToPixel(x: number, y: number, width: number, height: number) {
-  return new THREE.Vector2(Math.floor(width / 2 + x * 5), Math.floor(height / 2 + y * 5));
+  return new THREE.Vector2(Math.floor(width / 2 + x * 10), Math.floor(height / 2 + y * 10));
 }
 
 export function createHeightMap(curve: THREE.CurvePath<THREE.Vector3>, width: number, height: number) {
@@ -36,6 +36,35 @@ export function createHeightMap(curve: THREE.CurvePath<THREE.Vector3>, width: nu
     const value = point.y * colInc * 255;
 
     context.fillStyle = rgbToHex(value, value, value);
+    context.beginPath();
+    context.arc(pixel.x, pixel.y, 32, 0, 2 * Math.PI);
+    context.fill();
+    context.closePath();
+  });
+
+  context.getImageData(0, 0, width, height);
+}
+
+export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>, width: number, height: number) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  document.body.appendChild(canvas);
+
+  const context = canvas.getContext("2d");
+  const points = curve.getSpacedPoints(1000);
+  const max = 8.5;
+  const min = 0;
+
+  //context.imageSmoothingEnabled = false;
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, width, height);
+  context.fillStyle = "#000000";
+
+  points.forEach((point) => {
+    const pixel = pointToPixel(point.x, point.z, width, height);
+
     context.beginPath();
     context.arc(pixel.x, pixel.y, 12, 0, 2 * Math.PI);
     context.fill();

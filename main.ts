@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 import { road, roadSpine } from "./src/js/meshes";
-import { createHeightMap, pointToPixel, rgbToHex } from "./src/js/utils";
+import { createCollisionMap, createHeightMap, pointToPixel } from "./src/js/utils";
 import skyleft from "./src/assets/images/sky/skyleft.png";
 import skyright from "./src/assets/images/sky/skyright.png";
 import skytop from "./src/assets/images/sky/skytop.png";
@@ -10,7 +10,7 @@ import skybottom from "./src/assets/images/sky/skybottom.png";
 import skyfront from "./src/assets/images/sky/skyfront.png";
 import skyback from "./src/assets/images/sky/skyback.png";
 import displacement from "./src/assets/images/displacement.png";
-import collisionMap from "./src/assets/images/displacement.png";
+import collisionMap from "./src/assets/images/collision.png";
 //import craft1 from "./src/assets/models/craft1.obj";
 
 (function () {
@@ -18,6 +18,8 @@ import collisionMap from "./src/assets/images/displacement.png";
     CAMERA,
     PLAYER,
     BIRD,
+    COLLISION_MAP,
+    HEIGHT_MAP,
     MAP,
   }
 
@@ -49,7 +51,7 @@ import collisionMap from "./src/assets/images/displacement.png";
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-  let imageData: ImageData = undefined;
+  let heightData: ImageData = undefined;
   let collisionData: ImageData = undefined;
   let isDownDown = false;
   let isUpDown = false;
@@ -59,7 +61,7 @@ import collisionMap from "./src/assets/images/displacement.png";
   let rotateSpeed = 0;
   let model: THREE.Object3D = undefined;
 
-  const imageTexture = new THREE.TextureLoader().load(displacement, (texture) => {
+  new THREE.TextureLoader().load(displacement, (texture) => {
     const canvas = document.createElement("canvas");
     canvas.width = texture.image.width;
     canvas.height = texture.image.height;
@@ -67,10 +69,10 @@ import collisionMap from "./src/assets/images/displacement.png";
     const context = canvas.getContext("2d");
     context.drawImage(texture.image, 0, 0);
 
-    imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    heightData = context.getImageData(0, 0, canvas.width, canvas.height);
   });
 
-  const imageTexture2 = new THREE.TextureLoader().load(collisionMap, (texture) => {
+  new THREE.TextureLoader().load(collisionMap, (texture) => {
     const canvas = document.createElement("canvas");
     canvas.width = texture.image.width;
     canvas.height = texture.image.height;
@@ -100,46 +102,26 @@ import collisionMap from "./src/assets/images/displacement.png";
     actor.add(object);
   });
 
-  function getCollision(imageData: ImageData, position: THREE.Vector3, rotationY: THREE.Vector3): [number, number] {
-    const pixel = getPixel(imageData, new THREE.Vector2(position.x, position.z));
+  function getCollision(heightData: ImageData, position: THREE.Vector3, rotationY: THREE.Vector3): [number, number] {
+    const pixel = getPixel(heightData, new THREE.Vector2(position.x, position.z));
     const direction = new THREE.Vector2(rotationY.x, rotationY.z);
     const angle = direction.angle();
 
-    // this.repulsionVLeft.set(1, 0, 0);
-    //this.repulsionVRight.set(-1, 0, 0);
-    //this.dummy.matrix.rotateAxis(this.repulsionVLeft);
-    //this.dummy.matrix.rotateAxis(this.repulsionVRight);
-    //repulsionVLeft.multiplyScalar(scale).applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY - Math.PI / 2);
-    //repulsionVRight.multiplyScalar(scale).applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY + Math.PI / 2);
-
-    //const lPos = repulsionVLeft.add(position);
-    //const rPos = repulsionVRight.add(position);
-    //var lCol = this.collisionMap.getPixel(Math.round(lPos.x), Math.round(lPos.z)).r;
-    //var rCol = this.collisionMap.getPixel(Math.round(rPos.x), Math.round(rPos.z)).r;
-
-    // console.log("angle", angle);
     if (pixel) {
       const [r] = pixel;
 
       if (r === 255) {
-        const repulsionVLeft = new THREE.Vector2(2, 0);
-        const repulsionVRight = new THREE.Vector2(2, 0);
-
-        repulsionVLeft.rotateAround(new THREE.Vector2(0, 0), angle - Math.PI / 2);
-        repulsionVRight.rotateAround(new THREE.Vector2(0, 0), angle + Math.PI / 2);
-        //console.log("repulsionVLeft", repulsionVLeft);
-        //console.log("repulsionVRight", repulsionVRight);
+        const repulsionVLeft = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle - Math.PI / 2);
+        const repulsionVRight = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle + Math.PI / 2);
 
         const [left] = getPixel(
-          imageData,
+          heightData,
           new THREE.Vector2(repulsionVLeft.x, repulsionVLeft.y).add(new THREE.Vector2(position.x, position.z))
         );
         const [right] = getPixel(
-          imageData,
+          heightData,
           new THREE.Vector2(repulsionVRight.x, repulsionVRight.y).add(new THREE.Vector2(position.x, position.z))
         );
-        console.log("left", left);
-        console.log("right", right);
 
         return [left / 255, right / 255];
       }
@@ -148,8 +130,8 @@ import collisionMap from "./src/assets/images/displacement.png";
     return undefined;
   }
 
-  function getHeight(imageData: ImageData, position: THREE.Vector3, min = 0, max = 8.5) {
-    const pixel = getPixel(imageData, new THREE.Vector2(position.x, position.z));
+  function getHeight(heightData: ImageData, position: THREE.Vector3, min = 0, max = 8.5) {
+    const pixel = getPixel(heightData, new THREE.Vector2(position.x, position.z));
 
     if (pixel) {
       const [r, _, b] = pixel;
@@ -164,14 +146,14 @@ import collisionMap from "./src/assets/images/displacement.png";
     return min;
   }
 
-  function getPixel(imageData: ImageData, position: THREE.Vector2) {
+  function getPixel(heightData: ImageData, position: THREE.Vector2) {
     const pixel = pointToPixel(position.x, position.y, width, height);
     const start = Math.floor(pixel.y * width + pixel.x) * 4;
 
-    if (imageData) {
-      const r = imageData.data[start];
-      const g = imageData.data[start + 1];
-      const b = imageData.data[start + 2];
+    if (heightData) {
+      const r = heightData.data[start];
+      const g = heightData.data[start + 1];
+      const b = heightData.data[start + 2];
 
       return [r, g, b];
     }
@@ -256,36 +238,27 @@ import collisionMap from "./src/assets/images/displacement.png";
 
         if (collision) {
           const energy = new THREE.Vector3();
-          const repulsionAmount = speed * 0.5; // Math.max(0.8, Math.min(2.5, speed * 0.5));
+          const repulsionAmount = Math.max(speed, 0.01);
           const [left, right] = collision;
 
-          console.log("left", left);
-          console.log("right", right);
           if (right > left) {
-            // Repulse right
             energy.x += repulsionAmount;
-            //this.collision.left = true;
+            speed *= 0.5;
           } else if (right < left) {
-            // Repulse left
             energy.x += -repulsionAmount;
-            //this.collision.right = true;
+            speed *= 0.5;
           } else {
-            //console.log(collision.r+"  --  "+fCol+"  @  "+lCol+"  /  "+rCol);
             energy.z += -repulsionAmount * 2;
-            //this.collision.front = true;
-            //speed = 0;
-            //repulsion.lerp(new THREE.Vector3(), 0.1);
+            speed *= 0.25;
           }
-          //energy.
-          //repulsion.applyAxisAngle();
-          //repulsion.applyEuler();
 
-          //repulsion.applyAxisAngle(new THREE.Vector3(0, 1, 0), direction.angleTo());
+          repulsion.copy(energy.applyEuler(actor.rotation));
         } else {
           repulsion.lerp(new THREE.Vector3(), 0.1);
         }
 
-        const y = getHeight(imageData, actor.position, 0, 8.5);
+        // Update objects
+        const y = getHeight(heightData, actor.position, 0, 8.5);
         actor.position.add(direction.multiplyScalar(speed)).add(repulsion);
         actor.position.lerp(actor.position.clone().setY(y), 0.25);
 
@@ -321,7 +294,9 @@ import collisionMap from "./src/assets/images/displacement.png";
   }
 
   function init() {
-    if (cameraMode === CameraMode.MAP) {
+    if (cameraMode === CameraMode.COLLISION_MAP) {
+      createCollisionMap(spline, width, height);
+    } else if (cameraMode === CameraMode.HEIGHT_MAP) {
       createHeightMap(spline, width, height);
     } else {
       document.body.appendChild(renderer.domElement);
