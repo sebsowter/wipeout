@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { InstancedFlow } from "three/examples/jsm/modifiers/CurveModifier.js";
+
 import buildingUrl from "../assets/images/building.png";
 import pillarUrl from "../assets/images/pillar.png";
 import screenUrl from "../assets/images/screenFront.png";
@@ -266,6 +267,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   const groundTexture1 = new THREE.TextureLoader().load(track1Url);
   const groundTexture2 = new THREE.TextureLoader().load(track2Url);
   const groundTexture3 = new THREE.TextureLoader().load(track3Url);
+
   groundTexture1.minFilter = THREE.NearestFilter;
   groundTexture1.magFilter = THREE.NearestFilter;
   groundTexture2.minFilter = THREE.NearestFilter;
@@ -300,7 +302,6 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
     new InstancedFlow(stepCountRounded, 1, defaultGeometry, material3),
   ].forEach((flow, index) => {
     flow.updateCurve(0, spline);
-    object3D.add(flow.object3D);
 
     if (index === 0) {
       for (let i = 0; i < 43; i++) {
@@ -327,6 +328,8 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
         flow.moveIndividualAlongCurve(i, i * increment);
       }
     }
+
+    object3D.add(flow.object3D);
   });
 
   return object3D;
