@@ -19,6 +19,7 @@ export const building = (position: THREE.Vector3) => {
     color: 0xffffff,
     map: texture,
   });
+  material.map.encoding = THREE.sRGBEncoding;
   const geometry = new THREE.BoxGeometry(16, 16, 16);
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(position);
@@ -67,6 +68,7 @@ export const overhead = (position: THREE.Vector3) => {
     map: texture,
   });
 
+  material.map.encoding = THREE.sRGBEncoding;
   const geometry = new THREE.BoxGeometry(16, 4, 1);
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(position);
@@ -440,6 +442,7 @@ export const getTerrain = (imageData: ImageData) => {
     map: texture,
   });
 
+  material.map.encoding = THREE.sRGBEncoding;
   const geometry = new THREE.PlaneGeometry(
     imageData.width / 10,
     imageData.height / 10,
@@ -501,7 +504,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   groundTexture3.magFilter = THREE.NearestFilter;
 
   const material1 = new THREE.MeshBasicMaterial({
-    color: 0x999999,
+    color: 0x99bbcc,
     map: groundTexture1,
   });
   const material2 = new THREE.MeshBasicMaterial({
@@ -513,6 +516,9 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
     map: groundTexture3,
   });
 
+  material1.map.encoding = THREE.sRGBEncoding;
+  material2.map.encoding = THREE.sRGBEncoding;
+  material3.map.encoding = THREE.sRGBEncoding;
   const start = 23;
   const step = 4;
   const splineLength = spline.getLength();

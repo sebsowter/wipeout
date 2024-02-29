@@ -28,7 +28,7 @@ import ship from "./src/assets/images/ship.png";
     MAP,
   }
 
-  const cameraMode: CameraMode = CameraMode.PLAYER;
+  const cameraMode: CameraMode = CameraMode.CAMERA;
   const width = 1024;
   const height = 2048;
   const speedMax = 0.3;
@@ -88,8 +88,8 @@ import ship from "./src/assets/images/ship.png";
   const model = new THREE.Object3D();
   actor.add(model);
 
-  const light = new THREE.AmbientLight(0x404040); // soft white light
-  scene.add(light);
+  //const light = new THREE.AmbientLight(0x404040); // soft white light
+  //scene.add(light);
 
   new THREE.TextureLoader().load(terrain, function (texture) {
     const canvas = document.createElement("canvas");
@@ -165,7 +165,8 @@ import ship from "./src/assets/images/ship.png";
         // onLoad callback
         function (material: THREE.MeshBasicMaterial) {
           material.map = textureShip;
-          material.color = new THREE.Color(0xcccccc);
+          material.map.encoding = THREE.sRGBEncoding;
+          //material.color = new THREE.Color(0xffffff);
           material.side = THREE.DoubleSide;
           mesh.material = material;
         },
