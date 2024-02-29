@@ -1,19 +1,22 @@
 import * as THREE from "three";
 import { InstancedFlow } from "three/examples/jsm/modifiers/CurveModifier.js";
 
+import { mkSimplexNoise } from "./simplex";
 import buildingUrl from "../assets/images/building.png";
 import pillarUrl from "../assets/images/pillar.png";
 import screenUrl from "../assets/images/screenFront.png";
 import track1Url from "../assets/images/track1.png";
 import track2Url from "../assets/images/track2.png";
 import track3Url from "../assets/images/track3.png";
+import rock from "../assets/images/rock.png";
+import shipTexture from "../assets/images/ship.png";
 
 export const building = (position: THREE.Vector3) => {
   const texture = new THREE.TextureLoader().load(buildingUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
   const material = new THREE.MeshBasicMaterial({
-    color: 0xcccccc,
+    color: 0xffffff,
     map: texture,
   });
   const geometry = new THREE.BoxGeometry(16, 16, 16);
@@ -69,6 +72,182 @@ export const overhead = (position: THREE.Vector3) => {
   mesh.position.copy(position);
 
   return mesh;
+};
+
+export const ship = () => {
+  const texture = new THREE.TextureLoader().load(shipTexture);
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+
+  //const texture = new THREE.TextureLoader().load(buildingUrl);
+  //texture.minFilter = THREE.NearestFilter;
+  //texture.magFilter = THREE.NearestFilter;
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xcccccc,
+    side: THREE.DoubleSide,
+    map: texture,
+  });
+
+  const geometry = new THREE.BufferGeometry();
+  const fz = 4;
+  const bz = 2;
+  const fbx = 0.5;
+  const ftx = 0.25;
+  const fty = 0.25;
+  const quad_uvs = [0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
+  const vertices2 = new Float32Array([
+    // front
+    -fbx,
+    -fty,
+    fz,
+    fbx,
+    -fty,
+    fz,
+    -ftx,
+    fty,
+    fz,
+    -ftx,
+    fty,
+    fz,
+    fbx,
+    -fty,
+    fz,
+    ftx,
+    fty,
+    fz,
+    // back
+    1,
+    -1,
+    -bz,
+    -1,
+    -1,
+    -bz,
+    1,
+    1,
+    -bz,
+    1,
+    1,
+    -bz,
+    -1,
+    -1,
+    -bz,
+    -1,
+    1,
+    -bz,
+    // left
+    -1,
+    -1,
+    -1,
+    -fbx,
+    -fty,
+    fz,
+    -1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    -fbx,
+    -fty,
+    fz,
+    -ftx,
+    fty,
+    fz,
+    // right
+    fbx,
+    -fty,
+    fz,
+    1,
+    -1,
+    -1,
+    ftx,
+    fty,
+    fz,
+    ftx,
+    fty,
+    fz,
+    1,
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    // top
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    ftx,
+    fty,
+    fz,
+    ftx,
+    fty,
+    fz,
+    -1,
+    1,
+    -1,
+    -ftx,
+    fty,
+    fz,
+    // bottom
+    fbx,
+    -fty,
+    fz,
+    -fbx,
+    -fty,
+    fz,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    -fbx,
+    -fty,
+    fz,
+    -1,
+    -1,
+    -1,
+  ]);
+
+  const uvs = new Float32Array(vertices2);
+  const indices = [0, 1, 2, 2, 3, 0];
+  const indices2 = new Uint32Array([]);
+
+  // geometry.setIndex(indices);
+  geometry.setAttribute("position", new THREE.BufferAttribute(vertices2, 3));
+  geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+  //geometry.setIndex(new THREE.BufferAttribute(indices2, 1));
+
+  const mesh = new THREE.Mesh(geometry, material);
+  //mesh.rotateX(Math.PI / 4);
+  //mesh.rotateY(Math.PI / 4);
+  //mesh.rotateZ(Math.PI / 4);
+  /*
+  const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.5, 4, 4, 4);
+  const positionAttribute = geometry.attributes.position;
+
+  const vertex = new THREE.Vector3();
+
+  for (let i = 0; i < positionAttribute.count; i++) {
+    vertex.fromBufferAttribute(positionAttribute, i);
+  }
+
+  geometry.attributes.position.needsUpdate = true;
+  geometry.computeVertexNormals();
+  */
+
+  //const mesh = new THREE.Mesh(geometry2, material);
+  mesh.scale.multiplyScalar(0.125);
+  //mesh.position.setY(1);
+  //mesh.position.set(0, 0, 0);
+
+  const ss = new THREE.Object3D();
+  ss.add(mesh);
+
+  return ss;
 };
 
 export const roadSegmentCorner = () => {
@@ -212,51 +391,97 @@ export const roadSpine = () => {
         new THREE.Vector3(-16, 1, -48),
         new THREE.Vector3(-32, 2, -32),
         new THREE.Vector3(-32, 4, 0),
-        new THREE.Vector3(-32, 8, 20),
-        new THREE.Vector3(-32, 8, 32),
+        new THREE.Vector3(-32, 6, 32),
+        new THREE.Vector3(-32, 8, 64),
+        new THREE.Vector3(-32, 8, 80),
       ],
       false
     )
   );
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-32, 8, 32),
-      new THREE.Vector3(-32, 8, 48),
-      new THREE.Vector3(-16, 8, 48)
+      new THREE.Vector3(-32, 8, 80),
+      new THREE.Vector3(-32, 8, 96),
+      new THREE.Vector3(-16, 8, 96)
     )
   );
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-16, 8, 48),
-      new THREE.Vector3(0, 8, 48),
-      new THREE.Vector3(0, 8, 32)
+      new THREE.Vector3(-16, 8, 96),
+      new THREE.Vector3(0, 8, 96),
+      new THREE.Vector3(0, 8, 80)
     )
   );
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(0, 8, 32),
-      new THREE.Vector3(0, 8, 28),
-      new THREE.Vector3(0, 4, 24)
+      new THREE.Vector3(0, 8, 80),
+      new THREE.Vector3(0, 8, 72),
+      new THREE.Vector3(0, 4, 64)
     )
   );
   curvePath.add(
     new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(0, 4, 24),
-      new THREE.Vector3(0, 0, 20),
-      new THREE.Vector3(0, 0, 16)
+      new THREE.Vector3(0, 4, 64),
+      new THREE.Vector3(0, 0, 56),
+      new THREE.Vector3(0, 0, 48)
     )
   );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 0, 16), new THREE.Vector3(0, 0, 0)));
+  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(0, 0, 48), new THREE.Vector3(0, 0, 0)));
 
   return curvePath;
 };
 
+export const getTerrain = (imageData: ImageData) => {
+  const texture = new THREE.TextureLoader().load(rock);
+  //texture.minFilter = THREE.NearestFilter;
+  //texture.magFilter = THREE.NearestFilter;
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x999999,
+    map: texture,
+  });
+
+  const geometry = new THREE.PlaneGeometry(
+    imageData.width / 10,
+    imageData.height / 10,
+    imageData.width / 10,
+    imageData.height / 10
+  );
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.rotateX(-Math.PI / 2);
+  mesh.position.set(0, -4, 0);
+
+  const vertex = new THREE.Vector3();
+  const positionAttribute = geometry.getAttribute("position");
+
+  const simplex = mkSimplexNoise(() => 0);
+  const www = imageData.width;
+
+  for (let i = 0; i < positionAttribute.count; i++) {
+    vertex.fromBufferAttribute(positionAttribute, i);
+
+    const x = Math.floor(vertex.x * 10 + imageData.width / 2);
+    const y = Math.floor(vertex.y * 10 + imageData.height / 2);
+    //console.log("x", x);
+    const index = Math.floor(y * www + x) * 4;
+    const height = imageData.data[index];
+    const r = height / 255;
+    const noise = simplex.noise2D(vertex.x / 30, vertex.y / 30);
+
+    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z + r * 15 + noise * 4);
+  }
+
+  geometry.attributes.position.needsUpdate = true;
+  geometry.computeVertexNormals();
+
+  return mesh;
+};
+
 export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   const object3D = new THREE.Object3D();
-  object3D.add(building(new THREE.Vector3(-16, 8, 32)));
+  object3D.add(building(new THREE.Vector3(-16, 4, 32)));
   object3D.add(building(new THREE.Vector3(-16, 0, 0)));
   object3D.add(building(new THREE.Vector3(16, 0, 0)));
-  object3D.add(building(new THREE.Vector3(16, 8, 32)));
+  object3D.add(building(new THREE.Vector3(16, 4, 32)));
   object3D.add(overhead(new THREE.Vector3(0, 4, -32)));
   object3D.add(cylinder(new THREE.Vector3(8, 2, -88)));
   object3D.add(pillar(new THREE.Vector3(9, 0, -32)));
@@ -288,6 +513,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
     map: groundTexture3,
   });
 
+  const start = 23;
   const step = 4;
   const splineLength = spline.getLength();
   const stepCount = splineLength / step;
@@ -305,27 +531,27 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
 
     if (index === 0) {
       for (let i = 0; i < 43; i++) {
-        flow.moveIndividualAlongCurve(i, i * increment);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
       }
 
       for (let i = 51; i < 71; i++) {
-        flow.moveIndividualAlongCurve(i, i * increment);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
       }
 
       for (let i = 79; i < stepCountRounded; i++) {
-        flow.moveIndividualAlongCurve(i, i * increment);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
       }
     }
 
     if (index === 1) {
       for (let i = 71; i < 79; i++) {
-        flow.moveIndividualAlongCurve(i, i * increment);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
       }
     }
 
     if (index === 2) {
       for (let i = 43; i < 51; i++) {
-        flow.moveIndividualAlongCurve(i, i * increment);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
       }
     }
 

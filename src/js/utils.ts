@@ -31,7 +31,7 @@ export function createHeightMap(curve: THREE.CurvePath<THREE.Vector3>, width: nu
   context.fillStyle = "#ff0000";
   context.fillRect(0, 0, width, height);
 
-  points.forEach((point) => {
+  points.reverse().forEach((point) => {
     const pixel = pointToPixel(point.x, point.z, width, height);
     const value = point.y * colInc * 255;
 
@@ -66,7 +66,7 @@ export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>, width:
     const pixel = pointToPixel(point.x, point.z, width, height);
 
     context.beginPath();
-    context.arc(pixel.x, pixel.y, 12, 0, 2 * Math.PI);
+    context.arc(pixel.x, pixel.y, 24, 0, 2 * Math.PI);
     context.fill();
     context.closePath();
   });

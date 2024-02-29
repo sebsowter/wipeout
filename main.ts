@@ -1,7 +1,10 @@
 import * as THREE from "three";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
-import { road, roadSpine } from "./src/js/meshes";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+import { getTerrain, road, roadSpine } from "./src/js/meshes";
 import { createCollisionMap, createHeightMap, pointToPixel } from "./src/js/utils";
 import skyleft from "./src/assets/images/sky/skyleft.png";
 import skyright from "./src/assets/images/sky/skyright.png";
@@ -11,11 +14,13 @@ import skyfront from "./src/assets/images/sky/skyfront.png";
 import skyback from "./src/assets/images/sky/skyback.png";
 import displacement from "./src/assets/images/displacement.png";
 import collisionMap from "./src/assets/images/collision.png";
-//import craft1 from "./src/assets/models/craft1.obj";
+import terrain from "./src/assets/images/terrain.png";
+import ship from "./src/assets/images/ship.png";
 
 (function () {
   enum CameraMode {
     CAMERA,
+    ORBIT,
     PLAYER,
     BIRD,
     COLLISION_MAP,
@@ -26,10 +31,10 @@ import collisionMap from "./src/assets/images/collision.png";
   const cameraMode: CameraMode = CameraMode.PLAYER;
   const width = 1024;
   const height = 2048;
-  const speedMax = 0.25;
+  const speedMax = 0.3;
   const acceleration = 0.001;
   const deceleration = 0.001;
-  const turnMax = 0.03;
+  const turnMax = 0.04;
   const turnAcceleration = 0.0015;
   const turnDeceleration = 0.005;
   const repulsion = new THREE.Vector3();
@@ -46,10 +51,31 @@ import collisionMap from "./src/assets/images/collision.png";
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
   const cameraPosition = new THREE.Vector3();
+  const tilt = new THREE.Vector2();
   const clock = new THREE.Clock();
-  const spline = roadSpine();
+  const curve = roadSpine();
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  const controls = new OrbitControls(camera, renderer.domElement);
+
+  scene.background = new THREE.CubeTextureLoader().load([skyright, skyleft, skytop, skybottom, skyfront, skyback]);
+  //scene.background.minFilter = THREE.NearestFilter;
+  //scene.background.magFilter = THREE.NearestFilter;
+  cube1.position.setZ(-1.5);
+  cube1.position.setY(1);
+  cube2.position.setZ(-0.5);
+  cube2.position.setY(0.75);
+
+  scene.add(road(curve));
+  //actor.add(cube);
+  actor.add(cube2);
+  actor.add(cube1);
+  scene.add(actor);
+  // const ss = ship();
+  //ss.position.setY(0.4);
+  //actor.add(ss);
+  cube2.lookAt(cube1.position);
+  actor.rotateY(Math.PI);
 
   let heightData: ImageData = undefined;
   let collisionData: ImageData = undefined;
@@ -59,9 +85,29 @@ import collisionMap from "./src/assets/images/collision.png";
   let isRightDown = false;
   let speed = 0;
   let rotateSpeed = 0;
-  let model: THREE.Object3D = undefined;
+  const model = new THREE.Object3D();
+  actor.add(model);
 
-  new THREE.TextureLoader().load(displacement, (texture) => {
+  const light = new THREE.AmbientLight(0x404040); // soft white light
+  scene.add(light);
+
+  new THREE.TextureLoader().load(terrain, function (texture) {
+    const canvas = document.createElement("canvas");
+    canvas.width = texture.image.width;
+    canvas.height = texture.image.height;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(texture.image, 0, 0);
+
+    const terrain = getTerrain(context.getImageData(0, 0, canvas.width, canvas.height));
+
+    scene.add(terrain);
+  });
+  const textureShip = new THREE.TextureLoader().load(ship);
+  textureShip.minFilter = THREE.NearestFilter;
+  textureShip.magFilter = THREE.NearestFilter;
+
+  new THREE.TextureLoader().load(displacement, function (texture) {
     const canvas = document.createElement("canvas");
     canvas.width = texture.image.width;
     canvas.height = texture.image.height;
@@ -72,7 +118,7 @@ import collisionMap from "./src/assets/images/collision.png";
     heightData = context.getImageData(0, 0, canvas.width, canvas.height);
   });
 
-  new THREE.TextureLoader().load(collisionMap, (texture) => {
+  new THREE.TextureLoader().load(collisionMap, function (texture) {
     const canvas = document.createElement("canvas");
     canvas.width = texture.image.width;
     canvas.height = texture.image.height;
@@ -84,22 +130,59 @@ import collisionMap from "./src/assets/images/collision.png";
   });
 
   const loader = new OBJLoader();
-  loader.load("./src/assets/models/craft1.obj", function (object: THREE.Object3D) {
-    const material = new THREE.MeshBasicMaterial({
+  loader.load("./models/model.obj", function (object) {
+    console.log("object", object);
+    const material2 = new THREE.MeshBasicMaterial({
       color: 0x808080,
+      side: THREE.DoubleSide,
     });
 
+    let mesh: THREE.Mesh = undefined;
     object.traverse(function (child) {
       if (child instanceof THREE.Mesh) {
-        child.material = material;
+        mesh = child;
+        //child.material = material;
+        //child.material.texture.minFilter = THREE.NearestFilter;
+        //child.material.magFilter = THREE.NearestFilter;
+        // child.geometry.computeVertexNormals();
       }
     });
-    object.scale.multiplyScalar(0.075);
-    object.position.setY(0.3);
 
-    model = object;
+    if (mesh) {
+      //mesh.material.side = THREE.DoubleSide;
+      mesh.scale.multiplyScalar(0.005);
+      mesh.rotateY(Math.PI);
+      mesh.position.setY(0.3);
+      mesh.position.setZ(0.5);
 
-    actor.add(object);
+      const loader2 = new THREE.MaterialLoader();
+
+      // load a resource
+      loader2.load(
+        // resource URL
+        "./models/material.json",
+
+        // onLoad callback
+        function (material: THREE.MeshBasicMaterial) {
+          material.map = textureShip;
+          material.color = new THREE.Color(0xcccccc);
+          material.side = THREE.DoubleSide;
+          mesh.material = material;
+        },
+
+        // onProgress callback
+        function (xhr) {
+          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+        },
+
+        // onError callback
+        function (err) {
+          console.log("An error happened");
+        }
+      );
+
+      model.add(mesh);
+    }
   });
 
   function getCollision(heightData: ImageData, position: THREE.Vector3, rotationY: THREE.Vector3): [number, number] {
@@ -199,8 +282,8 @@ import collisionMap from "./src/assets/images/collision.png";
     const present = (time % looptime) / looptime;
     const future = ((time + 0.001) % looptime) / looptime;
 
-    spline.getPointAt(present, presentPosition);
-    spline.getPointAt(future, futurePosition);
+    curve.getPointAt(present, presentPosition);
+    curve.getPointAt(future, futurePosition);
 
     switch (cameraMode) {
       case CameraMode.PLAYER:
@@ -221,9 +304,7 @@ import collisionMap from "./src/assets/images/collision.png";
         if (Math.abs(rotateSpeed)) {
           actor.rotateY(rotateSpeed);
 
-          if (model) {
-            model.rotation.z = -rotateSpeed * 15;
-          }
+          model.rotation.z = -rotateSpeed * 15;
         }
 
         // Handle acceleration
@@ -257,8 +338,33 @@ import collisionMap from "./src/assets/images/collision.png";
           repulsion.lerp(new THREE.Vector3(), 0.1);
         }
 
-        // Update objects
+        // Handle tiltconst direction = new THREE.Vector2(rotationY.x, rotationY.z);
+
         const y = getHeight(heightData, actor.position, 0, 8.5);
+        const direction2 = new THREE.Vector2(direction.x, direction.z);
+        const angle = direction2.angle();
+        const forwardVector = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
+        const forwardPosition = actor.position.clone().add(new THREE.Vector3(forwardVector.x, 0, forwardVector.y));
+        const forwardHeight = getHeight(heightData, forwardPosition, 0, 8.5);
+
+        tilt.copy(new THREE.Vector2(2, y - forwardHeight));
+
+        if (model) {
+          //model.rotation.x = tilt.angle() * 0.5;
+        }
+
+        /*
+        if (forwardHeight >) {
+          if () {
+
+          }
+          // repulsion.copy(energy.applyEuler(actor.rotation));
+        } else {
+          //repulsion.lerp(new THREE.Vector3(), 0.1);
+        }
+        */
+
+        // Update objects
         actor.position.add(direction.multiplyScalar(speed)).add(repulsion);
         actor.position.lerp(actor.position.clone().setY(y), 0.25);
 
@@ -277,12 +383,16 @@ import collisionMap from "./src/assets/images/collision.png";
         break;
 
       case CameraMode.BIRD:
-      default:
         actor.position.copy(presentPosition);
         actor.lookAt(futurePosition);
 
         camera.position.copy(new THREE.Vector3(0, 0, 0).add(new THREE.Vector3(0, 1, 0).multiplyScalar(50)));
         camera.lookAt(actor.getWorldPosition(new THREE.Vector3()));
+        break;
+
+      case CameraMode.ORBIT:
+      default:
+        controls.update();
         break;
     }
   }
@@ -293,38 +403,42 @@ import collisionMap from "./src/assets/images/collision.png";
     renderer.render(scene, camera);
   }
 
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
   function init() {
-    if (cameraMode === CameraMode.COLLISION_MAP) {
-      createCollisionMap(spline, width, height);
-    } else if (cameraMode === CameraMode.HEIGHT_MAP) {
-      createHeightMap(spline, width, height);
-    } else {
-      document.body.appendChild(renderer.domElement);
+    switch (cameraMode) {
+      case CameraMode.COLLISION_MAP:
+        createCollisionMap(curve, width, height);
+        break;
 
-      scene.background = new THREE.CubeTextureLoader().load([skyright, skyleft, skytop, skybottom, skyfront, skyback]);
-      //scene.background.minFilter = THREE.NearestFilter;
-      //scene.background.magFilter = THREE.NearestFilter;
-      cube1.position.setZ(-1.5);
-      cube1.position.setY(1);
-      cube2.position.setZ(-0.7);
-      cube2.position.setY(0.75);
+      case CameraMode.HEIGHT_MAP:
+        createHeightMap(curve, width, height);
+        break;
 
-      const object3d = road(spline);
+      case CameraMode.ORBIT:
+        document.body.appendChild(renderer.domElement);
+        camera.position.set(0, 2, 4);
+        controls.update();
 
-      scene.add(object3d);
-      actor.add(cube);
-      actor.add(cube2);
-      actor.add(cube1);
-      scene.add(actor);
-      cube2.lookAt(cube1.position);
+        animate();
+        break;
 
-      animate();
-
-      if (cameraMode === CameraMode.PLAYER) {
+      case CameraMode.PLAYER:
         document.addEventListener("keydown", onDocumentKeyDown, false);
         document.addEventListener("keyup", onDocumentKeyUp, false);
-      }
+
+      default:
+        document.body.appendChild(renderer.domElement);
+
+        animate();
+        break;
     }
+
+    window.addEventListener("resize", onWindowResize, false);
   }
 
   init();
