@@ -1,9 +1,14 @@
 import * as THREE from "three";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+
+import ship from "../assets/images/ship.png";
 
 export class Actor extends THREE.Group {
   private _cube: THREE.Mesh;
   private _cube1: THREE.Mesh;
   private _cube2: THREE.Mesh;
+  private _mesh: THREE.Mesh;
+  private _texture: THREE.Texture;
 
   constructor() {
     super();
@@ -21,9 +26,62 @@ export class Actor extends THREE.Group {
     this._cube1.position.setY(1);
     this._cube2.position.setZ(-0.7);
     this._cube2.position.setY(0.75);
+    this._cube2.lookAt(this._cube1.position);
+
+    this._texture = new THREE.TextureLoader().load(ship);
+    this._texture.minFilter = THREE.NearestFilter;
+    this._texture.magFilter = THREE.NearestFilter;
+
+    this.add(this._cube2);
+    this.add(this._cube1);
+
+    this.rotateY(Math.PI);
+    this.loadModel();
+  }
+
+  private loadModel() {
+    const loader = new OBJLoader();
+    loader.load("./models/model.obj", (object: THREE.Object3D) => {
+      object.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          this.setMesh(child);
+        }
+      });
+
+      if (this._mesh) {
+        this._mesh.scale.multiplyScalar(0.005);
+        this._mesh.rotateY(Math.PI);
+        this._mesh.position.setY(0.5);
+        this._mesh.position.setZ(0.5);
+
+        this.add(this._mesh);
+        this.loadMaterial();
+      }
+    });
+  }
+
+  private loadMaterial() {
+    const loader = new THREE.MaterialLoader();
+    loader.load("./models/material.json", (material: THREE.MeshBasicMaterial) => {
+      material.map = this._texture;
+      material.map.encoding = THREE.sRGBEncoding;
+      material.side = THREE.DoubleSide;
+
+      if (this._mesh) {
+        this._mesh.material = material;
+      }
+    });
+  }
+
+  private setMesh(mesh: THREE.Mesh) {
+    this._mesh = mesh;
   }
 
   public get cameraPosition() {
-    return this._cube2.position;
+    return this._cube2;
+  }
+
+  public get model() {
+    return this._mesh;
   }
 }

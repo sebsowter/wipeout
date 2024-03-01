@@ -1,243 +1,73 @@
 import * as THREE from "three";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
-import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
-
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-import { getTerrain, road, roadSpine } from "./src/js/meshes";
-import { createCollisionMap, createHeightMap, pointToPixel } from "./src/js/utils";
+import { getCollisionMap, getHeightMap, road, roadSpine } from "./src/js/meshes";
+import { createCollisionMap, createHeightMap, getCollision, getHeight } from "./src/js/utils";
 import skyleft from "./src/assets/images/sky/skyleft.png";
 import skyright from "./src/assets/images/sky/skyright.png";
 import skytop from "./src/assets/images/sky/skytop.png";
 import skybottom from "./src/assets/images/sky/skybottom.png";
 import skyfront from "./src/assets/images/sky/skyfront.png";
 import skyback from "./src/assets/images/sky/skyback.png";
-import displacement from "./src/assets/images/displacement.png";
-import collisionMap from "./src/assets/images/collision.png";
-import terrain from "./src/assets/images/terrain.png";
-import ship from "./src/assets/images/ship.png";
+import { Actor } from "./src/js/Actor";
+import { Terrain } from "./src/js/Terrain";
 
 type CameraMode = "CAMERA" | "ORBIT" | "PLAYER" | "BIRD" | "COLLISION_MAP" | "HEIGHT_MAP" | "MAP";
 
 (function () {
-  const cameraMode: CameraMode = "ORBIT";
-  const width = 1024;
-  const height = 2048;
+  const cameraMode: CameraMode = "PLAYER";
+
   const speedMax = 0.3;
-  const acceleration = 0.001;
-  const deceleration = 0.001;
+  const speedAcceleration = 0.001;
+  const speedDeceleration = 0.001;
+
   const turnMax = 0.04;
   const turnAcceleration = 0.0015;
   const turnDeceleration = 0.005;
+
   const repulsion = new THREE.Vector3();
-  const geometry1 = new THREE.BoxGeometry(0.25, 0.25, 0.25);
-  const geometry2 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-  const material1 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-  const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-  const cube = new THREE.Mesh(geometry1, material1);
-  const cube1 = new THREE.Mesh(geometry2, material2);
-  const cube2 = new THREE.Mesh(geometry2, material2);
   const presentPosition = new THREE.Vector3();
   const futurePosition = new THREE.Vector3();
-  const actor = new THREE.Group();
+
+  const actor = new Actor();
+  const cameraPosition = new THREE.Vector3();
+  const terrain = new Terrain();
+  const tilt = new THREE.Vector2();
+
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const cameraPosition = new THREE.Vector3();
-  const tilt = new THREE.Vector2();
   const clock = new THREE.Clock();
-  const curve = roadSpine();
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  const controls = new OrbitControls(camera, renderer.domElement);
 
   scene.background = new THREE.CubeTextureLoader().load([skyright, skyleft, skytop, skybottom, skyfront, skyback]);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+
+  const curve = roadSpine();
   //scene.background.minFilter = THREE.NearestFilter;
   //scene.background.magFilter = THREE.NearestFilter;
-  cube1.position.setZ(-1.5);
-  cube1.position.setY(1);
-  cube2.position.setZ(-0.5);
-  cube2.position.setY(0.75);
 
+  actor.position.set(16, 0, 0);
+  scene.add(terrain);
   scene.add(road(curve));
-  //actor.add(cube);
-  actor.add(cube2);
-  actor.add(cube1);
   scene.add(actor);
-  // const ss = ship();
-  //ss.position.setY(0.4);
-  //actor.add(ss);
-  cube2.lookAt(cube1.position);
-  actor.rotateY(Math.PI);
 
-  let heightData: ImageData = undefined;
-  let collisionData: ImageData = undefined;
   let isDownDown = false;
   let isUpDown = false;
   let isLeftDown = false;
   let isRightDown = false;
   let speed = 0;
   let rotateSpeed = 0;
-  const model = new THREE.Object3D();
-  actor.add(model);
+  let heightData: ImageData;
+  let collisionData: ImageData;
 
+  getHeightMap().then((imageData) => (heightData = imageData));
+  getCollisionMap().then((imageData) => (collisionData = imageData));
   //const light = new THREE.AmbientLight(0x404040); // soft white light
   //scene.add(light);
 
-  new THREE.TextureLoader().load(terrain, function (texture) {
-    const canvas = document.createElement("canvas");
-    canvas.width = texture.image.width;
-    canvas.height = texture.image.height;
-
-    const context = canvas.getContext("2d");
-    context.drawImage(texture.image, 0, 0);
-
-    const terrain = getTerrain(context.getImageData(0, 0, canvas.width, canvas.height));
-
-    scene.add(terrain);
-  });
-  const textureShip = new THREE.TextureLoader().load(ship);
-  textureShip.minFilter = THREE.NearestFilter;
-  textureShip.magFilter = THREE.NearestFilter;
-
-  new THREE.TextureLoader().load(displacement, function (texture) {
-    const canvas = document.createElement("canvas");
-    canvas.width = texture.image.width;
-    canvas.height = texture.image.height;
-
-    const context = canvas.getContext("2d");
-    context.drawImage(texture.image, 0, 0);
-
-    heightData = context.getImageData(0, 0, canvas.width, canvas.height);
-  });
-
-  new THREE.TextureLoader().load(collisionMap, function (texture) {
-    const canvas = document.createElement("canvas");
-    canvas.width = texture.image.width;
-    canvas.height = texture.image.height;
-
-    const context = canvas.getContext("2d");
-    context.drawImage(texture.image, 0, 0);
-
-    collisionData = context.getImageData(0, 0, canvas.width, canvas.height);
-  });
-
-  const loader = new OBJLoader();
-  loader.load("./models/model.obj", function (object) {
-    console.log("object", object);
-    const material2 = new THREE.MeshBasicMaterial({
-      color: 0x808080,
-      side: THREE.DoubleSide,
-    });
-
-    let mesh: THREE.Mesh = undefined;
-    object.traverse(function (child) {
-      if (child instanceof THREE.Mesh) {
-        mesh = child;
-        //child.material = material;
-        //child.material.texture.minFilter = THREE.NearestFilter;
-        //child.material.magFilter = THREE.NearestFilter;
-        // child.geometry.computeVertexNormals();
-      }
-    });
-
-    if (mesh) {
-      //mesh.material.side = THREE.DoubleSide;
-      mesh.scale.multiplyScalar(0.005);
-      mesh.rotateY(Math.PI);
-      mesh.position.setY(0.3);
-      mesh.position.setZ(0.5);
-
-      const loader2 = new THREE.MaterialLoader();
-
-      // load a resource
-      loader2.load(
-        // resource URL
-        "./models/material.json",
-
-        // onLoad callback
-        function (material: THREE.MeshBasicMaterial) {
-          material.map = textureShip;
-          material.map.encoding = THREE.sRGBEncoding;
-          //material.color = new THREE.Color(0xffffff);
-          material.side = THREE.DoubleSide;
-          mesh.material = material;
-        },
-
-        // onProgress callback
-        function (xhr) {
-          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-        },
-
-        // onError callback
-        function (err) {
-          console.log("An error happened");
-        }
-      );
-
-      model.add(mesh);
-    }
-  });
-
-  function getCollision(heightData: ImageData, position: THREE.Vector3, rotationY: THREE.Vector3): [number, number] {
-    const pixel = getPixel(heightData, new THREE.Vector2(position.x, position.z));
-    const direction = new THREE.Vector2(rotationY.x, rotationY.z);
-    const angle = direction.angle();
-
-    if (pixel) {
-      const [r] = pixel;
-
-      if (r === 255) {
-        const repulsionVLeft = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle - Math.PI / 2);
-        const repulsionVRight = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle + Math.PI / 2);
-
-        const [left] = getPixel(
-          heightData,
-          new THREE.Vector2(repulsionVLeft.x, repulsionVLeft.y).add(new THREE.Vector2(position.x, position.z))
-        );
-        const [right] = getPixel(
-          heightData,
-          new THREE.Vector2(repulsionVRight.x, repulsionVRight.y).add(new THREE.Vector2(position.x, position.z))
-        );
-
-        return [left / 255, right / 255];
-      }
-    }
-
-    return undefined;
-  }
-
-  function getHeight(heightData: ImageData, position: THREE.Vector3, min = 0, max = 8.5) {
-    const pixel = getPixel(heightData, new THREE.Vector2(position.x, position.z));
-
-    if (pixel) {
-      const [r, _, b] = pixel;
-
-      if (r === 255 && b === 255) {
-        return min;
-      }
-
-      return (b / 255) * (max - min);
-    }
-
-    return min;
-  }
-
-  function getPixel(heightData: ImageData, position: THREE.Vector2) {
-    const pixel = pointToPixel(position.x, position.y, width, height);
-    const start = Math.floor(pixel.y * width + pixel.x) * 4;
-
-    if (heightData) {
-      const r = heightData.data[start];
-      const g = heightData.data[start + 1];
-      const b = heightData.data[start + 2];
-
-      return [r, g, b];
-    }
-
-    return undefined;
-  }
-
-  function onDocumentKeyDown(event) {
+  function onDocumentKeyDown(event: KeyboardEvent) {
     const keyCode = event.which;
 
     if (keyCode == 87) {
@@ -253,7 +83,7 @@ type CameraMode = "CAMERA" | "ORBIT" | "PLAYER" | "BIRD" | "COLLISION_MAP" | "HE
     }
   }
 
-  function onDocumentKeyUp(event) {
+  function onDocumentKeyUp(event: KeyboardEvent) {
     const keyCode = event.which;
 
     if (keyCode == 87) {
@@ -296,15 +126,14 @@ type CameraMode = "CAMERA" | "ORBIT" | "PLAYER" | "BIRD" | "COLLISION_MAP" | "HE
 
         if (Math.abs(rotateSpeed)) {
           actor.rotateY(rotateSpeed);
-
-          model.rotation.z = -rotateSpeed * 15;
+          actor.model.rotation.z = Math.PI + rotateSpeed * 15;
         }
 
-        // Handle acceleration
+        // Handle speedAcceleration
         if (isUpDown) {
-          speed = Math.min(speed + acceleration, speedMax);
+          speed = Math.min(speed + speedAcceleration, speedMax);
         } else {
-          speed = Math.max(speed - deceleration, 0);
+          speed = Math.max(speed - speedDeceleration, 0);
         }
 
         // Handle collision
@@ -332,7 +161,6 @@ type CameraMode = "CAMERA" | "ORBIT" | "PLAYER" | "BIRD" | "COLLISION_MAP" | "HE
         }
 
         // Handle tiltconst direction = new THREE.Vector2(rotationY.x, rotationY.z);
-
         const y = getHeight(heightData, actor.position, 0, 8.5);
         const direction2 = new THREE.Vector2(direction.x, direction.z);
         const angle = direction2.angle();
@@ -342,37 +170,22 @@ type CameraMode = "CAMERA" | "ORBIT" | "PLAYER" | "BIRD" | "COLLISION_MAP" | "HE
 
         tilt.copy(new THREE.Vector2(2, y - forwardHeight));
 
-        if (model) {
-          //model.rotation.x = tilt.angle() * 0.5;
-        }
-
-        /*
-        if (forwardHeight >) {
-          if () {
-
-          }
-          // repulsion.copy(energy.applyEuler(actor.rotation));
-        } else {
-          //repulsion.lerp(new THREE.Vector3(), 0.1);
-        }
-        */
-
         // Update objects
         actor.position.add(direction.multiplyScalar(speed)).add(repulsion);
         actor.position.lerp(actor.position.clone().setY(y), 0.25);
 
-        cube2.getWorldPosition(cameraPosition);
+        actor.cameraPosition.getWorldPosition(cameraPosition);
         camera.position.copy(cameraPosition);
-        camera.quaternion.copy(cube2.getWorldQuaternion(new THREE.Quaternion()));
+        camera.quaternion.copy(actor.cameraPosition.getWorldQuaternion(new THREE.Quaternion()));
         break;
 
       case "CAMERA":
         actor.position.copy(presentPosition);
         actor.lookAt(futurePosition);
 
-        cube2.getWorldPosition(cameraPosition);
+        actor.cameraPosition.getWorldPosition(cameraPosition);
         camera.position.copy(cameraPosition);
-        camera.quaternion.copy(cube2.getWorldQuaternion(new THREE.Quaternion()));
+        camera.quaternion.copy(actor.cameraPosition.getWorldQuaternion(new THREE.Quaternion()));
         break;
 
       case "BIRD":
@@ -405,17 +218,17 @@ type CameraMode = "CAMERA" | "ORBIT" | "PLAYER" | "BIRD" | "COLLISION_MAP" | "HE
   function init() {
     switch (cameraMode) {
       case "COLLISION_MAP":
-        createCollisionMap(curve, width, height);
+        createCollisionMap(curve);
         break;
 
       case "HEIGHT_MAP":
-        createHeightMap(curve, width, height);
+        createHeightMap(curve);
         break;
 
       case "ORBIT":
         document.body.appendChild(renderer.domElement);
 
-        camera.position.set(0, 2, 4);
+        camera.position.set(16, 2, 4);
         controls.update();
 
         animate();

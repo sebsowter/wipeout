@@ -9,7 +9,52 @@ import track1Url from "../assets/images/track1.png";
 import track2Url from "../assets/images/track2.png";
 import track3Url from "../assets/images/track3.png";
 import rock from "../assets/images/rock.png";
-import shipTexture from "../assets/images/ship.png";
+import displacement from "../assets/images/displacement.png";
+import collisionMap from "../assets/images/collision.png";
+
+export const getHeightMap = () => {
+  return new Promise<ImageData>((resolve, reject) => {
+    new THREE.TextureLoader().load(
+      displacement,
+      function (texture) {
+        const canvas = document.createElement("canvas");
+        canvas.width = texture.image.width;
+        canvas.height = texture.image.height;
+
+        const context = canvas.getContext("2d");
+        context.drawImage(texture.image, 0, 0);
+
+        resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+      },
+      undefined,
+      function () {
+        reject();
+      }
+    );
+  });
+};
+
+export const getCollisionMap = () => {
+  return new Promise<ImageData>((resolve, reject) => {
+    new THREE.TextureLoader().load(
+      collisionMap,
+      function (texture) {
+        const canvas = document.createElement("canvas");
+        canvas.width = texture.image.width;
+        canvas.height = texture.image.height;
+
+        const context = canvas.getContext("2d");
+        context.drawImage(texture.image, 0, 0);
+
+        resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+      },
+      undefined,
+      function () {
+        reject();
+      }
+    );
+  });
+};
 
 export const building = (position: THREE.Vector3) => {
   const texture = new THREE.TextureLoader().load(buildingUrl);
@@ -200,7 +245,7 @@ export const getTerrain = (imageData: ImageData) => {
     const r = height / 255;
     const noise = simplex.noise2D(vertex.x / 30, vertex.y / 30);
 
-    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z + r * 1 + noise * 1);
+    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z + r * 16 + noise * 4);
   }
 
   geometry.attributes.position.needsUpdate = true;
@@ -241,21 +286,28 @@ export const roadSpine = () => {
       [
         new THREE.Vector3(16, 2, -88),
         new THREE.Vector3(16, 2, -80),
-        new THREE.Vector3(0, 2, -64),
-        new THREE.Vector3(0, 2, -48),
-        new THREE.Vector3(-32, 6, -16),
+        new THREE.Vector3(0, 3, -64),
+        new THREE.Vector3(0, 5, -48),
+        new THREE.Vector3(-32, 4, -16),
         new THREE.Vector3(-24, 6, 16),
-        new THREE.Vector3(-32, 6, 64),
-        new THREE.Vector3(-24, 8, 72),
-        new THREE.Vector3(-8, 8, 72),
+        new THREE.Vector3(-24, 8, 48),
+        new THREE.Vector3(-24, 8, 56),
       ],
       false
     )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
-      new THREE.Vector3(-8, 8, 72),
-      new THREE.Vector3(8, 8, 72),
+      new THREE.Vector3(-24, 8, 56),
+      new THREE.Vector3(-24, 8, 64),
+      new THREE.Vector3(-16, 7, 72),
+      new THREE.Vector3(-8, 7, 72)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(-8, 7, 72),
+      new THREE.Vector3(8, 7, 72),
       new THREE.Vector3(8, 8, 96),
       new THREE.Vector3(24, 8, 96)
     )
@@ -265,15 +317,15 @@ export const roadSpine = () => {
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(32, 8, 96),
       new THREE.Vector3(48, 8, 96),
-      new THREE.Vector3(48, 4, 64),
-      new THREE.Vector3(32, 4, 64)
+      new THREE.Vector3(48, 4, 72),
+      new THREE.Vector3(32, 4, 72)
     )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
-      new THREE.Vector3(32, 4, 64),
-      new THREE.Vector3(16, 4, 64),
-      new THREE.Vector3(16, 0, 64),
+      new THREE.Vector3(32, 4, 72),
+      new THREE.Vector3(8, 4, 72),
+      new THREE.Vector3(16, 0, 48),
       new THREE.Vector3(16, 0, 32)
     )
   );
@@ -322,12 +374,13 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   material1.map.encoding = THREE.sRGBEncoding;
   material2.map.encoding = THREE.sRGBEncoding;
   material3.map.encoding = THREE.sRGBEncoding;
-  const start = 23;
+
+  const start = 34;
   const step = 4;
   const splineLength = spline.getLength();
   const stepCount = splineLength / step;
   const stepCountRounded = Math.ceil(stepCount);
-  const increment = 1 / stepCountRounded;
+  const increment = 1 / stepCount;
   console.log("splineLength", splineLength);
   console.log("stepCountRounded", stepCountRounded);
 

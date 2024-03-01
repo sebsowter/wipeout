@@ -1,5 +1,70 @@
 import * as THREE from "three";
 
+export function getHeight(heightData: ImageData, position: THREE.Vector3, min = 0, max = 8.5) {
+  const pixel = getPixel(heightData, new THREE.Vector2(position.x, position.z), 16);
+
+  if (pixel) {
+    const [r, _, b] = pixel;
+
+    if (r === 255 && b === 255) {
+      return min;
+    }
+
+    return (b / 255) * (max - min);
+  }
+
+  return min;
+}
+
+export function getCollision(
+  heightData: ImageData,
+  position: THREE.Vector3,
+  rotationY: THREE.Vector3
+): [number, number] {
+  const pixel = getPixel(heightData, new THREE.Vector2(position.x, position.z), 8);
+  const direction = new THREE.Vector2(rotationY.x, rotationY.z);
+  const angle = direction.angle();
+
+  if (pixel) {
+    const [r] = pixel;
+
+    if (r === 255) {
+      const repulsionVLeft = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle - Math.PI / 2);
+      const repulsionVRight = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle + Math.PI / 2);
+
+      const [left] = getPixel(
+        heightData,
+        new THREE.Vector2(repulsionVLeft.x, repulsionVLeft.y).add(new THREE.Vector2(position.x, position.z)),
+        8
+      );
+      const [right] = getPixel(
+        heightData,
+        new THREE.Vector2(repulsionVRight.x, repulsionVRight.y).add(new THREE.Vector2(position.x, position.z)),
+        8
+      );
+
+      return [left / 255, right / 255];
+    }
+  }
+
+  return undefined;
+}
+
+export function getPixel(heightData: ImageData, position: THREE.Vector2, scale: number) {
+  const pixel = pointToPixel(position.x, position.y, heightData.width, heightData.height, scale);
+  const start = Math.floor(pixel.y * heightData.width + pixel.x) * 4;
+
+  if (heightData) {
+    const r = heightData.data[start];
+    const g = heightData.data[start + 1];
+    const b = heightData.data[start + 2];
+
+    return [r, g, b];
+  }
+
+  return undefined;
+}
+
 export function componentToHex(c: number) {
   const hex = c.toString(16);
 
@@ -10,11 +75,14 @@ export function rgbToHex(r: number, g: number, b: number) {
   return "#" + componentToHex(Math.floor(r)) + componentToHex(Math.floor(g)) + componentToHex(Math.floor(b));
 }
 
-export function pointToPixel(x: number, y: number, width: number, height: number) {
-  return new THREE.Vector2(Math.floor(width / 2 + x * 10), Math.floor(height / 2 + y * 10));
+export function pointToPixel(x: number, y: number, width: number, height: number, scale: number) {
+  return new THREE.Vector2(Math.floor(width / 2 + x * scale), Math.floor(height / 2 + y * scale));
 }
 
-export function createHeightMap(curve: THREE.CurvePath<THREE.Vector3>, width: number, height: number) {
+export function createHeightMap(curve: THREE.CurvePath<THREE.Vector3>) {
+  const width = 2048;
+  const height = 4096;
+
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -32,12 +100,12 @@ export function createHeightMap(curve: THREE.CurvePath<THREE.Vector3>, width: nu
   context.fillRect(0, 0, width, height);
 
   points.reverse().forEach((point) => {
-    const pixel = pointToPixel(point.x, point.z, width, height);
+    const pixel = pointToPixel(point.x, point.z, width, height, 16);
     const value = point.y * colInc * 255;
 
     context.fillStyle = rgbToHex(value, value, value);
     context.beginPath();
-    context.arc(pixel.x, pixel.y, 32, 0, 2 * Math.PI);
+    context.arc(pixel.x, pixel.y, 64, 0, 2 * Math.PI);
     context.fill();
     context.closePath();
   });
@@ -45,7 +113,9 @@ export function createHeightMap(curve: THREE.CurvePath<THREE.Vector3>, width: nu
   context.getImageData(0, 0, width, height);
 }
 
-export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>, width: number, height: number) {
+export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>) {
+  const width = 1024;
+  const height = 2048;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -54,8 +124,6 @@ export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>, width:
 
   const context = canvas.getContext("2d");
   const points = curve.getSpacedPoints(1000);
-  const max = 8.5;
-  const min = 0;
 
   //context.imageSmoothingEnabled = false;
   context.fillStyle = "#ffffff";
@@ -63,10 +131,10 @@ export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>, width:
   context.fillStyle = "#000000";
 
   points.forEach((point) => {
-    const pixel = pointToPixel(point.x, point.z, width, height);
+    const pixel = pointToPixel(point.x, point.z, width, height, 8);
 
     context.beginPath();
-    context.arc(pixel.x, pixel.y, 24, 0, 2 * Math.PI);
+    context.arc(pixel.x, pixel.y, 16, 0, 2 * Math.PI);
     context.fill();
     context.closePath();
   });
