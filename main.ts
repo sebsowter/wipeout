@@ -17,18 +17,10 @@ import collisionMap from "./src/assets/images/collision.png";
 import terrain from "./src/assets/images/terrain.png";
 import ship from "./src/assets/images/ship.png";
 
-(function () {
-  enum CameraMode {
-    CAMERA,
-    ORBIT,
-    PLAYER,
-    BIRD,
-    COLLISION_MAP,
-    HEIGHT_MAP,
-    MAP,
-  }
+type CameraMode = "CAMERA" | "ORBIT" | "PLAYER" | "BIRD" | "COLLISION_MAP" | "HEIGHT_MAP" | "MAP";
 
-  const cameraMode: CameraMode = CameraMode.CAMERA;
+(function () {
+  const cameraMode: CameraMode = "ORBIT";
   const width = 1024;
   const height = 2048;
   const speedMax = 0.3;
@@ -287,7 +279,7 @@ import ship from "./src/assets/images/ship.png";
     curve.getPointAt(future, futurePosition);
 
     switch (cameraMode) {
-      case CameraMode.PLAYER:
+      case "PLAYER":
         const direction = new THREE.Vector3();
         actor.getWorldDirection(direction);
 
@@ -374,7 +366,7 @@ import ship from "./src/assets/images/ship.png";
         camera.quaternion.copy(cube2.getWorldQuaternion(new THREE.Quaternion()));
         break;
 
-      case CameraMode.CAMERA:
+      case "CAMERA":
         actor.position.copy(presentPosition);
         actor.lookAt(futurePosition);
 
@@ -383,7 +375,7 @@ import ship from "./src/assets/images/ship.png";
         camera.quaternion.copy(cube2.getWorldQuaternion(new THREE.Quaternion()));
         break;
 
-      case CameraMode.BIRD:
+      case "BIRD":
         actor.position.copy(presentPosition);
         actor.lookAt(futurePosition);
 
@@ -391,7 +383,7 @@ import ship from "./src/assets/images/ship.png";
         camera.lookAt(actor.getWorldPosition(new THREE.Vector3()));
         break;
 
-      case CameraMode.ORBIT:
+      case "ORBIT":
       default:
         controls.update();
         break;
@@ -412,23 +404,24 @@ import ship from "./src/assets/images/ship.png";
 
   function init() {
     switch (cameraMode) {
-      case CameraMode.COLLISION_MAP:
+      case "COLLISION_MAP":
         createCollisionMap(curve, width, height);
         break;
 
-      case CameraMode.HEIGHT_MAP:
+      case "HEIGHT_MAP":
         createHeightMap(curve, width, height);
         break;
 
-      case CameraMode.ORBIT:
+      case "ORBIT":
         document.body.appendChild(renderer.domElement);
+
         camera.position.set(0, 2, 4);
         controls.update();
 
         animate();
         break;
 
-      case CameraMode.PLAYER:
+      case "PLAYER":
         document.addEventListener("keydown", onDocumentKeyDown, false);
         document.addEventListener("keyup", onDocumentKeyUp, false);
 
