@@ -58,9 +58,22 @@ export const getCollisionMap = () => {
 };
 
 export const building = (position: THREE.Vector3) => {
+  const object = new THREE.Object3D();
+  object.position.copy(position);
+
   const texture = new THREE.TextureLoader().load(buildingUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
+
+  const material2 = new THREE.MeshBasicMaterial({
+    color: 0xff0000,
+    //map: texture,
+  });
+
+  const material3 = new THREE.MeshBasicMaterial({
+    color: 0xff00ff,
+    //map: texture,
+  });
 
   const material = new THREE.MeshBasicMaterial({
     color: 0xffffff,
@@ -68,12 +81,45 @@ export const building = (position: THREE.Vector3) => {
   });
   material.map.encoding = THREE.sRGBEncoding;
 
-  const geometry = new THREE.BoxGeometry(16, 16, 16);
+  const geometry2 = new THREE.PlaneGeometry(32, 2);
+  const geometry3 = new THREE.PlaneGeometry(32, 6);
+
+  const geometry = new THREE.BoxGeometry(8, 12, 32);
+
+  const vertex = new THREE.Vector3();
+  const positionAttribute = geometry.getAttribute("position");
+  const simplex = mkSimplexNoise(() => 0);
+
+  console.log("positionAttribute", positionAttribute);
+
+  for (let i = 0; i < positionAttribute.count; i++) {
+    vertex.fromBufferAttribute(positionAttribute, i);
+    console.log("vertex", vertex);
+
+    if (vertex.x > 0 && vertex.y > 0) {
+      vertex.y = -4;
+    }
+
+    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+  }
+
+  geometry.attributes.position.needsUpdate = true;
+  geometry.computeVertexNormals();
 
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(position);
+  const mesh2 = new THREE.Mesh(geometry2, material2);
+  mesh2.position.set(-4, 7, 0);
+  mesh2.rotateY(Math.PI / 2);
+  const mesh3 = new THREE.Mesh(geometry3, material3);
+  mesh3.position.set(-1, 8, 0);
+  mesh3.rotateY(Math.PI / 2);
+  mesh3.rotateX(Math.PI / 2);
 
-  return mesh;
+  object.add(mesh);
+  object.add(mesh2);
+  object.add(mesh3);
+
+  return object;
 };
 
 export const pillar = (position: THREE.Vector3) => {
@@ -86,7 +132,7 @@ export const pillar = (position: THREE.Vector3) => {
     map: texture,
   });
 
-  const geometry = new THREE.BoxGeometry(2, 12, 2);
+  const geometry = new THREE.BoxGeometry(1, 12, 1);
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(position);
@@ -121,16 +167,18 @@ export const overhead = (position: THREE.Vector3) => {
   const material = new THREE.MeshBasicMaterial({
     color: 0xcccccc,
     map: texture,
+    side: THREE.DoubleSide,
   });
   material.map.encoding = THREE.sRGBEncoding;
 
-  const geometry = new THREE.BoxGeometry(16, 4, 1);
+  const geometry = new THREE.PlaneGeometry(10, 4, 1, 1);
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(position.x, position.y + 4, position.z);
 
-  object3d.add(pillar(new THREE.Vector3(position.x + 9, position.y, position.z)));
-  object3d.add(pillar(new THREE.Vector3(position.x - 9, position.y, position.z)));
+  object3d.add(pillar(new THREE.Vector3(position.x + 5.5, position.y, position.z)));
+  object3d.add(pillar(new THREE.Vector3(position.x - 5.5, position.y, position.z)));
+  object3d.add(pillar(new THREE.Vector3(position.x, position.y + 6.5, position.z)).rotateZ(Math.PI / 2));
   object3d.add(mesh);
 
   return object3d;
@@ -292,7 +340,7 @@ export const getTerrain = (imageData: ImageData) => {
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.rotateX(-Math.PI / 2);
-  mesh.position.set(0, -4, 0);
+  mesh.position.set(0, -2, 0);
 
   const vertex = new THREE.Vector3();
   const positionAttribute = geometry.getAttribute("position");
@@ -308,7 +356,7 @@ export const getTerrain = (imageData: ImageData) => {
     const r = height / 255;
     const noise = simplex.noise2D(vertex.x / 30, vertex.y / 30);
 
-    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z + r * 16 + noise * 4);
+    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z + r * 16 + r * noise * 8);
   }
 
   geometry.attributes.position.needsUpdate = true;
@@ -400,9 +448,9 @@ export const getRoadCurve = () => {
 export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   const object3D = new THREE.Object3D();
   object3D.add(building(new THREE.Vector3(0, 4, 32)));
-  object3D.add(building(new THREE.Vector3(0, 0, 0)));
-  object3D.add(building(new THREE.Vector3(32, 0, 0)));
-  object3D.add(building(new THREE.Vector3(32, 4, 32)));
+  object3D.add(building(new THREE.Vector3(0, 4, -4)));
+  object3D.add(building(new THREE.Vector3(32, 4, -4)).rotateY(Math.PI));
+  object3D.add(building(new THREE.Vector3(32, 4, 32)).rotateY(Math.PI));
   object3D.add(overhead(new THREE.Vector3(16, 0, -32)));
   object3D.add(overhead(new THREE.Vector3(32, 2, -72)));
   object3D.add(overhead(new THREE.Vector3(0, 5, -48)));
@@ -456,6 +504,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   const stepCountRounded = Math.ceil(stepCount);
   const increment = 1 / stepCount;
   const colors = getRoadColors(stepCountRounded);
+  console.log("splineLength", splineLength);
   console.log("stepCountRounded", stepCountRounded);
 
   [
@@ -468,36 +517,36 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
 
     if (index === 0) {
       for (let i = 0; i < 43; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
         flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
       }
 
       for (let i = 51; i < 71; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
         flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
       }
 
       for (let i = 79; i < 92; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
         flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
       }
 
       for (let i = 102; i < stepCountRounded; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
         flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
       }
     }
 
     if (index === 1) {
       for (let i = 71; i < 79; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
         flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
       }
     }
 
     if (index === 2) {
       for (let i = 43; i < 51; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
         flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
       }
     }

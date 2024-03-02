@@ -20,12 +20,12 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
 
   const keys = new Keys();
 
-  const speedMax = 0.3;
+  const speedMax = 0.35;
   const speedAcceleration = 0.001;
-  const speedDeceleration = 0.001;
+  const speedDeceleration = 0.002;
 
   const turnMax = 0.04;
-  const turnAcceleration = 0.0015;
+  const turnAcceleration = 0.002;
   const turnDeceleration = 0.005;
 
   const repulsion = new THREE.Vector3();
@@ -36,6 +36,7 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
   const cameraPosition = new THREE.Vector3();
   const terrain = new Terrain();
   const tilt = new THREE.Vector2();
+  const cameraRoll = new THREE.Object3D();
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -60,9 +61,11 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
   actor.position.set(16, 0, 0);
 
   let speed = 0;
-  let rotateSpeed = 0;
+  let rotationY = 0;
   let heightData: ImageData;
   let collisionData: ImageData;
+  let isLeftTurning = false;
+  let isRightTurning = false;
 
   getHeightMap().then((imageData) => (heightData = imageData));
   getCollisionMap().then((imageData) => (collisionData = imageData));
@@ -83,19 +86,46 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
 
         // Handle stearing
         if (keys.isLeftDown) {
-          rotateSpeed = Math.min(rotateSpeed + turnAcceleration, turnMax);
+          if (!isLeftTurning) {
+            //rotationY = 0;
+            isLeftTurning = true;
+          }
+          rotationY = Math.min(rotationY + turnAcceleration, turnMax);
         } else if (keys.isRightDown) {
-          rotateSpeed = Math.max(rotateSpeed - turnAcceleration, -turnMax);
-        } else if (rotateSpeed > 0) {
-          rotateSpeed = Math.max(rotateSpeed - turnDeceleration, 0);
-        } else if (rotateSpeed < 0) {
-          rotateSpeed = Math.min(rotateSpeed + turnDeceleration, 0);
+          if (!isRightTurning) {
+            //rotationY = 0;
+            isRightTurning = true;
+          }
+          rotationY = Math.max(rotationY - turnAcceleration, -turnMax);
+        } else {
+          isLeftTurning = false;
+          isRightTurning = false;
+
+          if (rotationY > 0) {
+            rotationY = Math.max(rotationY - turnDeceleration, 0);
+          } else if (rotationY < 0) {
+            rotationY = Math.min(rotationY + turnDeceleration, 0);
+          }
         }
 
-        if (Math.abs(rotateSpeed)) {
-          actor.rotateY(rotateSpeed);
-          actor.model.rotation.z = Math.PI + rotateSpeed * 15;
-        }
+        actor.rotateY(rotationY);
+
+        const v = new THREE.Vector3().setFromEuler(actor.rotation);
+        v.lerp(new THREE.Vector3().setFromEuler(actor.rotation), 0.25);
+
+        const euler = new THREE.Euler();
+        euler.copy(actor.model.rotation);
+
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromEuler(euler).rotateTowards(new THREE.Quaternion(), 0.25);
+        //quaternion.slerp(new THREE.Quaternion().setFromEuler(euler).clone().rotateTowards(rotationY), 0.25);
+
+        actor.model.rotation.z = Math.PI + rotationY * 15;
+
+        actor.cameraPosition.rotation.z = Math.PI + rotationY * 5;
+        //actor.model.rotation;
+
+        //cameraRoll.l;
 
         // Handle speedAcceleration
         if (keys.isUpDown) {
@@ -128,9 +158,9 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
           repulsion.lerp(new THREE.Vector3(), 0.1);
         }
 
-        // Handle tilt
-        //const direction = new THREE.Vector2(rotationY.x, rotationY.z);
         const y = getHeight(heightData, actor.position, 0, 8.5);
+
+        // Handle tilt
         const direction2 = new THREE.Vector2(direction.x, direction.z);
         const angle = direction2.angle();
         const forwardVector = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
