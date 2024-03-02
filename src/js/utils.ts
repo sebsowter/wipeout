@@ -134,10 +134,48 @@ export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>) {
     const pixel = pointToPixel(point.x, point.z, width, height, 8);
 
     context.beginPath();
+
     context.arc(pixel.x, pixel.y, 16, 0, 2 * Math.PI);
     context.fill();
     context.closePath();
   });
 
   context.getImageData(0, 0, width, height);
+}
+
+export function getRoadColors(count: number = 122) {
+  const keyColors: [number, THREE.Color][] = [
+    [3, new THREE.Color(0xcccccc)],
+    [3, new THREE.Color(0xffcc66)],
+    [10, new THREE.Color(0xffcc66)],
+    [2, new THREE.Color(0x99bbcc)],
+    [16, new THREE.Color(0x99bbcc)],
+    [18, new THREE.Color(0x6699cc)],
+    [18, new THREE.Color(0x99bbcc)],
+    [2, new THREE.Color(0xcccccc)],
+    [14, new THREE.Color(0xcccccc)],
+    [3, new THREE.Color(0x00ffff)],
+    [3, new THREE.Color(0x666666)],
+    [6, new THREE.Color(0x666666)],
+    [3, new THREE.Color(0x00ffff)],
+    [3, new THREE.Color(0xcccccc)],
+    [6, new THREE.Color(0xcccccc)],
+    [7, new THREE.Color(0x666666)],
+    [3, new THREE.Color(0xcccccc)],
+  ];
+
+  const colors = keyColors.reduce(
+    (previous, [total, nextColor]) => {
+      const increment = 1 / (total + 1);
+      const lastColor = previous[previous.length - 1];
+      const current = Array.from(Array(total)).map((_, index) => {
+        return lastColor.clone().lerp(nextColor, (index + 1) * increment);
+      });
+
+      return [...previous, ...current];
+    },
+    [new THREE.Color(0xcccccc)]
+  );
+
+  return colors;
 }

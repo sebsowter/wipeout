@@ -32,8 +32,17 @@ export class Actor extends THREE.Group {
     this._texture.minFilter = THREE.NearestFilter;
     this._texture.magFilter = THREE.NearestFilter;
 
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.castShadow = true;
+    light.shadow.mapSize.width = 512; // default
+    light.shadow.mapSize.height = 512; // default
+    light.shadow.camera.near = 0.5; // default
+    light.shadow.camera.far = 500; // default
+    light.position.set(0, 4, 0);
+
     this.add(this._cube2);
     this.add(this._cube1);
+    this.add(light);
 
     this.rotateY(Math.PI);
     this.loadModel();
@@ -53,6 +62,7 @@ export class Actor extends THREE.Group {
         this._mesh.rotateY(Math.PI);
         this._mesh.position.setY(0.5);
         this._mesh.position.setZ(0.5);
+        this._mesh.castShadow = true;
 
         this.add(this._mesh);
         this.loadMaterial();
