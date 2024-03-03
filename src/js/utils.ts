@@ -145,23 +145,23 @@ export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>) {
 
 export function getRoadColors(count: number = 122) {
   const keyColors: [number, THREE.Color][] = [
-    [3, new THREE.Color(0xcccccc)],
-    [3, new THREE.Color(0xffcc66)],
-    [10, new THREE.Color(0xffcc66)],
+    [5, new THREE.Color(0xcccccc)],
+    [3, new THREE.Color(0xffcc66)], // sign 1
     [2, new THREE.Color(0x99bbcc)],
-    [16, new THREE.Color(0x99bbcc)],
-    [18, new THREE.Color(0xcccccc)],
-    [18, new THREE.Color(0x99bbcc)],
-    [2, new THREE.Color(0xcccccc)],
-    [14, new THREE.Color(0xcccccc)],
-    [3, new THREE.Color(0xffee33)],
-    [3, new THREE.Color(0x999999)],
-    [6, new THREE.Color(0x999999)],
-    [3, new THREE.Color(0xffee33)],
-    [3, new THREE.Color(0xffffff)],
-    [6, new THREE.Color(0xffffff)],
-    [7, new THREE.Color(0x666666)],
+    [3, new THREE.Color(0xffcc66)], // sign 1
+    [3, new THREE.Color(0xffffff)], // curve
+    [3, new THREE.Color(0x99bbcc)],
     [3, new THREE.Color(0xcccccc)],
+    [4, new THREE.Color(0xffee33)], // tunnel
+    [8, new THREE.Color(0xff9933)], // tunnel
+    [4, new THREE.Color(0xffee33)], // tunnel
+    [3, new THREE.Color(0xffffff)],
+    [3, new THREE.Color(0x99bbcc)],
+    [3, new THREE.Color(0xffffff)],
+    [3, new THREE.Color(0xcccccc)],
+    [3, new THREE.Color(0x99bbcc)],
+    [3, new THREE.Color(0xffffff)],
+    [10, new THREE.Color(0xcccccc)],
   ];
 
   const colors = keyColors.reduce(

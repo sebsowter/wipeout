@@ -8,6 +8,7 @@ import screenUrl from "../assets/images/screenFront.png";
 import track1Url from "../assets/images/track1.png";
 import track2Url from "../assets/images/track2.png";
 import track3Url from "../assets/images/track3.png";
+import track4Url from "../assets/images/track4.png";
 import rock from "../assets/images/rock.png";
 import displacement from "../assets/images/displacement.png";
 import collisionMap from "../assets/images/collision.png";
@@ -90,11 +91,11 @@ export const building = (position: THREE.Vector3) => {
   const positionAttribute = geometry.getAttribute("position");
   const simplex = mkSimplexNoise(() => 0);
 
-  console.log("positionAttribute", positionAttribute);
+  //console.log("positionAttribute", positionAttribute);
 
   for (let i = 0; i < positionAttribute.count; i++) {
     vertex.fromBufferAttribute(positionAttribute, i);
-    console.log("vertex", vertex);
+    //console.log("vertex", vertex);
 
     if (vertex.x > 0 && vertex.y > 0) {
       vertex.y = -4;
@@ -187,7 +188,7 @@ export const overhead = (position: THREE.Vector3) => {
 export const roadSegmentCorner = () => {
   const flowsX = 16;
   const flowsY = 16;
-  const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
+  const geometry = new THREE.PlaneGeometry(8, 8, flowsX, flowsY);
   const vertex = new THREE.Vector3();
   const positionAttribute = geometry.attributes.position;
 
@@ -236,7 +237,7 @@ export const roadSegmentCorner = () => {
 export const roadSegmentTunnel = () => {
   const flowsX = 16;
   const flowsY = 16;
-  const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
+  const geometry = new THREE.PlaneGeometry(8, 8, flowsX, flowsY);
   const vertex = new THREE.Vector3();
   const positionAttribute = geometry.attributes.position;
 
@@ -285,7 +286,7 @@ export const roadSegmentTunnel = () => {
 export const roadSegmentDefault = () => {
   const flowsX = 16;
   const flowsY = 16;
-  const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
+  const geometry = new THREE.PlaneGeometry(8, 8, flowsX, flowsY);
   const vertex = new THREE.Vector3();
   const positionAttribute = geometry.attributes.position;
 
@@ -445,7 +446,95 @@ export const getRoadCurve = () => {
   return curvePath;
 };
 
+export const getRoadCurve1 = () => {
+  const curvePath = new THREE.CurvePath<THREE.Vector3>();
+  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 0), new THREE.Vector3(16, 0, -32)));
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(16, 0, -32),
+      new THREE.Vector3(16, 0, -48),
+      new THREE.Vector3(32, 0, -40),
+      new THREE.Vector3(32, 0, -56)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 0, -56),
+      new THREE.Vector3(32, 0, -72),
+      new THREE.Vector3(32, 2, -72),
+      new THREE.Vector3(32, 2, -88)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 2, -88),
+      new THREE.Vector3(32, 2, -100),
+      new THREE.Vector3(16, 2, -100),
+      new THREE.Vector3(16, 2, -88)
+    )
+  );
+
+  return curvePath;
+};
+
+export const getRoadCurve2 = () => {
+  const curvePath = new THREE.CurvePath<THREE.Vector3>();
+  curvePath.add(
+    new THREE.CatmullRomCurve3(
+      [
+        new THREE.Vector3(16, 2, -88),
+        new THREE.Vector3(16, 2, -80),
+        new THREE.Vector3(0, 3, -64),
+        new THREE.Vector3(0, 5, -48),
+        new THREE.Vector3(-32, 4, -16),
+        new THREE.Vector3(-24, 6, 16),
+        new THREE.Vector3(-24, 8, 48),
+        new THREE.Vector3(-24, 8, 56),
+      ],
+      false
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(-24, 8, 56),
+      new THREE.Vector3(-24, 8, 64),
+      new THREE.Vector3(-16, 7, 72),
+      new THREE.Vector3(-8, 7, 72)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(-8, 7, 72),
+      new THREE.Vector3(8, 7, 72),
+      new THREE.Vector3(8, 8, 96),
+      new THREE.Vector3(24, 8, 96)
+    )
+  );
+  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(24, 8, 96), new THREE.Vector3(32, 8, 96)));
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 8, 96),
+      new THREE.Vector3(48, 8, 96),
+      new THREE.Vector3(48, 4, 72),
+      new THREE.Vector3(32, 4, 72)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 4, 72),
+      new THREE.Vector3(8, 4, 72),
+      new THREE.Vector3(16, 0, 48),
+      new THREE.Vector3(16, 0, 32)
+    )
+  );
+  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 32), new THREE.Vector3(16, 0, 0)));
+
+  return curvePath;
+};
+
 export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
+  //spline = getRoadCurve1();
+  const spline2 = getRoadCurve2();
   const object3D = new THREE.Object3D();
   object3D.add(building(new THREE.Vector3(0, 4, 32)));
   object3D.add(building(new THREE.Vector3(0, 4, -4)));
@@ -464,7 +553,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   const groundTexture1 = new THREE.TextureLoader().load(track1Url);
   const groundTexture2 = new THREE.TextureLoader().load(track2Url);
   const groundTexture3 = new THREE.TextureLoader().load(track3Url);
-  const groundTexture4 = new THREE.TextureLoader().load(track3Url);
+  const groundTexture4 = new THREE.TextureLoader().load(track4Url);
 
   groundTexture1.minFilter = THREE.NearestFilter;
   groundTexture1.magFilter = THREE.NearestFilter;
@@ -497,14 +586,15 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   material3.map.encoding = THREE.sRGBEncoding;
   material4.map.encoding = THREE.sRGBEncoding;
 
-  const start = 34;
-  const step = 4;
+  const start = 37;
+  const step = 8;
   const splineLength = spline.getLength();
   const stepCount = splineLength / step;
   const stepCountRounded = Math.ceil(stepCount);
   const increment = 1 / stepCount;
   const colors = getRoadColors(stepCountRounded);
   console.log("splineLength", splineLength);
+  console.log("stepCount", stepCount);
   console.log("stepCountRounded", stepCountRounded);
 
   [
@@ -516,49 +606,47 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
     flow.updateCurve(0, spline);
 
     if (index === 0) {
-      for (let i = 0; i < 43; i++) {
+      for (let i = 8; i < 16; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
 
-      for (let i = 51; i < 71; i++) {
+      for (let i = 19; i < 26; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
 
-      for (let i = 79; i < 92; i++) {
+      for (let i = 38; i < stepCountRounded; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
-      }
-
-      for (let i = 102; i < stepCountRounded; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
     }
 
     if (index === 1) {
-      for (let i = 71; i < 79; i++) {
+      for (let i = 16; i < 19; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
     }
 
     if (index === 2) {
-      for (let i = 43; i < 51; i++) {
+      for (let i = 0; i < 8; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
     }
 
     if (index === 3) {
-      for (let i = 92; i < 102; i++) {
-        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % stepCountRounded);
-        flow.object3D.setColorAt(i, colors[(start + i) % colors.length]);
+      for (let i = 26; i < 38; i++) {
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
     }
 
     object3D.add(flow.object3D);
+
+    console.log("flow.object3D.morphTargetInfluences", flow.object3D.morphTargetInfluences);
+    console.log("flow.object3D.morphTargetDictionary", flow.object3D.morphTargetDictionary);
   });
 
   return object3D;
