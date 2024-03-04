@@ -25,7 +25,7 @@ export class Actor extends THREE.Group {
       transparent: true,
       map: texture,
       side: THREE.DoubleSide,
-      opacity: 0.5,
+      opacity: 0.4,
     });
     material.depthTest = false;
     //material.depthWrite = false;

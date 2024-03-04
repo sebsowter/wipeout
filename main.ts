@@ -6,7 +6,7 @@ import { createCollisionMap, createHeightMap, getCollision, getHeight } from "./
 import { Actor } from "./src/js/Actor";
 import { Terrain } from "./src/js/Terrain";
 import { Keys } from "./src/js/Keys";
-import skyleft from "./static/images/sky/skyleft.png";
+import skyleft from "./src/assets/images/sky/skyleft.png";
 import skyright from "./src/assets/images/sky/skyright.png";
 import skytop from "./src/assets/images/sky/skytop.png";
 import skybottom from "./src/assets/images/sky/skybottom.png";
