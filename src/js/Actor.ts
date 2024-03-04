@@ -64,7 +64,7 @@ export class Actor extends THREE.Group {
       });
 
       if (this._mesh) {
-        this._mesh.scale.multiplyScalar(0.005);
+        this._mesh.scale.multiplyScalar(0.05);
         this._mesh.rotateY(Math.PI);
         this._mesh.position.setY(0.65);
         this._mesh.position.setZ(0.5);
@@ -95,6 +95,10 @@ export class Actor extends THREE.Group {
 
   public get cameraPosition() {
     return this._cameraPosition;
+  }
+
+  public get shadow() {
+    return this._shadow;
   }
 
   public get model() {

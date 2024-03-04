@@ -147,11 +147,7 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
         actor.rotateY(rotationY);
         actor.model.rotation.setFromQuaternion(quaternion);
         actor.cameraPosition.rotation.setFromQuaternion(cameraQuaternion);
-
-        //actor.cameraPosition.rotateZ()
-        //actor.model.rotation;
-
-        //cameraRoll.l;
+        actor.shadow.rotation.y = -rotationY * 5;
 
         // Handle speedAcceleration
         if (keys.isUpDown) {
