@@ -20,6 +20,8 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
 
   const keys = new Keys();
 
+  const lapTimes = ["01:29:43", "02:33:52", "02:17:46"];
+
   const speedMax = 0.3;
   const speedAcceleration = 0.001;
   const speedDeceleration = 0.002;
@@ -237,6 +239,54 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
       createHeightMap(curve);
     } else {
       document.body.appendChild(renderer.domElement);
+
+      const timeing = document.createElement("p");
+      timeing.innerText = "LAP TIMES";
+      timeing.style.position = "absolute";
+      timeing.style.top = "256px";
+      timeing.style.left = "48px";
+      timeing.style.fontSize = "2rem";
+      timeing.style.fontFamily = "wipeout";
+      timeing.style.color = "#ffffff";
+      timeing.style.margin = "0";
+
+      lapTimes.map((time, index) => {
+        const timeing2 = document.createElement("p");
+        timeing2.innerText = `${index + 1}. ${time}`;
+        timeing2.style.position = "absolute";
+        timeing2.style.top = `${256 + (index + 1) * 48}px`;
+        timeing2.style.left = "48px";
+        timeing2.style.fontSize = "2rem";
+        timeing2.style.fontFamily = "wipeout";
+        timeing2.style.color = "#f9b714";
+        timeing2.style.margin = "0";
+
+        document.body.appendChild(timeing2);
+      });
+
+      const timeing4 = document.createElement("p");
+      timeing4.innerText = "TIME";
+      timeing4.style.position = "absolute";
+      timeing4.style.top = "48px";
+      timeing4.style.left = "48px";
+      timeing4.style.fontSize = "2rem";
+      timeing4.style.fontFamily = "wipeout";
+      timeing4.style.color = "#f9b714";
+      timeing4.style.margin = "0";
+
+      const timeing3 = document.createElement("p");
+      timeing3.innerText = "01:35:45";
+      timeing3.style.position = "absolute";
+      timeing3.style.top = "96px";
+      timeing3.style.left = "48px";
+      timeing3.style.fontSize = "5rem";
+      timeing3.style.fontFamily = "wipeout";
+      timeing3.style.color = "#ffffff";
+      timeing3.style.margin = "0";
+      document.body.style.position = "relative";
+      document.body.appendChild(timeing);
+      document.body.appendChild(timeing3);
+      document.body.appendChild(timeing4);
 
       if (cameraMode === "orbit") {
         camera.position.set(16, 2, 4);
