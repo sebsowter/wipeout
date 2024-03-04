@@ -5,10 +5,14 @@ import { mkSimplexNoise } from "./simplex";
 import buildingUrl from "../assets/images/building.png";
 import pillarUrl from "../assets/images/pillar.png";
 import screenUrl from "../assets/images/screenFront.png";
+import screen2 from "../assets/images/screen2.png";
+import screen3 from "../assets/images/screen3.png";
+import screen4 from "../assets/images/screen4.png";
 import track1Url from "../assets/images/track1.png";
 import track2Url from "../assets/images/track2.png";
 import track3Url from "../assets/images/track3.png";
 import track4Url from "../assets/images/track4.png";
+import standUrl from "../assets/images/stand.png";
 import rock from "../assets/images/rock.png";
 import displacement from "../assets/images/displacement.png";
 import collisionMap from "../assets/images/collision.png";
@@ -62,30 +66,36 @@ export const building = (position: THREE.Vector3) => {
   const object = new THREE.Object3D();
   object.position.copy(position);
 
-  const texture = new THREE.TextureLoader().load(buildingUrl);
+  const texture = new THREE.TextureLoader().load(standUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
 
   const material2 = new THREE.MeshBasicMaterial({
-    color: 0xff0000,
+    color: 0x111111,
     //map: texture,
   });
 
   const material3 = new THREE.MeshBasicMaterial({
-    color: 0xff00ff,
+    color: 0x000000,
+    //map: texture,
+  });
+
+  const materialBlack = new THREE.MeshBasicMaterial({
+    color: 0x000000,
     //map: texture,
   });
 
   const material = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    map: texture,
+    color: 0x333333,
+    //map: texture,
+    //side: THREE.DoubleSide,
   });
-  material.map.encoding = THREE.sRGBEncoding;
+  //material.map.encoding = THREE.sRGBEncoding;
 
   const geometry2 = new THREE.PlaneGeometry(32, 2);
   const geometry3 = new THREE.PlaneGeometry(32, 6);
 
-  const geometry = new THREE.BoxGeometry(8, 12, 32);
+  const geometry = new THREE.BoxGeometry(12, 12, 32);
 
   const vertex = new THREE.Vector3();
   const positionAttribute = geometry.getAttribute("position");
@@ -98,7 +108,7 @@ export const building = (position: THREE.Vector3) => {
     //console.log("vertex", vertex);
 
     if (vertex.x > 0 && vertex.y > 0) {
-      vertex.y = -4;
+      vertex.y = -2;
     }
 
     positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
@@ -107,12 +117,19 @@ export const building = (position: THREE.Vector3) => {
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
 
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = new THREE.Mesh(geometry, [
+    materialBlack,
+    materialBlack,
+    material,
+    materialBlack,
+    materialBlack,
+    materialBlack,
+  ]);
   const mesh2 = new THREE.Mesh(geometry2, material2);
-  mesh2.position.set(-4, 7, 0);
+  mesh2.position.set(-6, 7, 0);
   mesh2.rotateY(Math.PI / 2);
   const mesh3 = new THREE.Mesh(geometry3, material3);
-  mesh3.position.set(-1, 8, 0);
+  mesh3.position.set(-3, 8, 0);
   mesh3.rotateY(Math.PI / 2);
   mesh3.rotateX(Math.PI / 2);
 
@@ -159,9 +176,9 @@ export const cylinder = (position: THREE.Vector3) => {
   return mesh;
 };
 
-export const overhead = (position: THREE.Vector3) => {
+export const overhead = (position: THREE.Vector3, imageUrl = screenUrl) => {
   const object3d = new THREE.Object3D();
-  const texture = new THREE.TextureLoader().load(screenUrl);
+  const texture = new THREE.TextureLoader().load(imageUrl);
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
 
@@ -249,28 +266,44 @@ export const roadSegmentTunnel = () => {
     let z = 0;
     let x = vertex.x;
 
-    if (indexX < 4 || indexX === 13) {
+    if (indexX === 0) {
+      x = 0;
+      z = 2;
+    }
+
+    if (indexX === 1) {
+      x = -2;
+      z = 2;
+    }
+
+    if (indexX === 2) {
+      x = -2.5;
+      z = 1;
+    }
+
+    if (indexX === 3) {
+      x = -2.5;
+      z = 0.5;
+    }
+
+    if (indexX === 13) {
+      x = 2.5;
       z = 0.5;
     }
 
     if (indexX === 14) {
-      z = 1.4;
-      x = 2;
+      x = 2.5;
+      z = 1;
     }
 
     if (indexX === 15) {
-      z = 1.5;
       x = 2;
+      z = 2;
     }
 
     if (indexX === 16) {
-      z = 1.5;
-      x = 2.5;
-    }
-
-    if (indexX > 16) {
-      z = 0;
-      x = 2.5;
+      x = 0;
+      z = 2;
     }
 
     positionAttribute.setXYZ(i, x, vertex.y, z);
@@ -302,6 +335,30 @@ export const roadSegmentDefault = () => {
       z = 0.5;
     }
 
+    if (indexX === 1) {
+      x = -2;
+    }
+
+    if (indexX === 2) {
+      x = -2.75;
+    }
+
+    if (indexX === 3) {
+      x = -2.5;
+    }
+
+    if (indexX === 13) {
+      x = 2.5;
+    }
+
+    if (indexX === 14) {
+      x = 2.75;
+    }
+
+    if (indexX === 15) {
+      x = 2;
+    }
+
     if (indexX === 1 || indexX === 15) {
       z = 0;
     }
@@ -323,8 +380,8 @@ export const roadSegmentDefault = () => {
 
 export const getTerrain = (imageData: ImageData) => {
   const texture = new THREE.TextureLoader().load(rock);
-  //texture.minFilter = THREE.NearestFilter;
-  //texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
 
   const material = new THREE.MeshBasicMaterial({
     color: 0x999999,
@@ -536,16 +593,16 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   //spline = getRoadCurve1();
   const spline2 = getRoadCurve2();
   const object3D = new THREE.Object3D();
-  object3D.add(building(new THREE.Vector3(0, 4, 32)));
-  object3D.add(building(new THREE.Vector3(0, 4, -4)));
-  object3D.add(building(new THREE.Vector3(32, 4, -4)).rotateY(Math.PI));
-  object3D.add(building(new THREE.Vector3(32, 4, 32)).rotateY(Math.PI));
-  object3D.add(overhead(new THREE.Vector3(16, 0, -32)));
-  object3D.add(overhead(new THREE.Vector3(32, 2, -72)));
-  object3D.add(overhead(new THREE.Vector3(0, 5, -48)));
-  object3D.add(overhead(new THREE.Vector3(-24, 8, 48)));
-  object3D.add(overhead(new THREE.Vector3(32, 4, 72)).rotateY(0.2));
-  object3D.add(cylinder(new THREE.Vector3(8, 2, -88)));
+  object3D.add(building(new THREE.Vector3(4, 4, 32)));
+  object3D.add(building(new THREE.Vector3(4, 4, -4)));
+  object3D.add(building(new THREE.Vector3(28, 4, -4)).rotateY(Math.PI));
+  object3D.add(building(new THREE.Vector3(28, 4, 32)).rotateY(Math.PI));
+  object3D.add(overhead(new THREE.Vector3(16, 0, -32), screen4));
+  object3D.add(overhead(new THREE.Vector3(32, 2, -72), screen2));
+  object3D.add(overhead(new THREE.Vector3(0, 5, -48)), screenUrl);
+  //object3D.add(overhead(new THREE.Vector3(-24, 8, 48), screen3));
+  // object3D.add(overhead(new THREE.Vector3(32, 4, 72)).rotateY(0.2));
+  //object3D.add(cylinder(new THREE.Vector3(8, 2, -88)));
   object3D.receiveShadow = true;
   const defaultGeometry = roadSegmentDefault();
   const cornerGeometry = roadSegmentCorner();
@@ -580,7 +637,6 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
     color: 0xcccccc,
     map: groundTexture4,
   });
-
   material1.map.encoding = THREE.sRGBEncoding;
   material2.map.encoding = THREE.sRGBEncoding;
   material3.map.encoding = THREE.sRGBEncoding;
@@ -643,6 +699,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
       }
     }
 
+    flow.object3D.receiveShadow = true;
     object3D.add(flow.object3D);
 
     console.log("flow.object3D.morphTargetInfluences", flow.object3D.morphTargetInfluences);

@@ -145,7 +145,8 @@ export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>) {
 
 export function getRoadColors(count: number = 122) {
   const keyColors: [number, THREE.Color][] = [
-    [5, new THREE.Color(0xcccccc)],
+    [2, new THREE.Color(0xffffff)],
+    [3, new THREE.Color(0xcccccc)],
     [3, new THREE.Color(0xffcc66)], // sign 1
     [2, new THREE.Color(0x99bbcc)],
     [3, new THREE.Color(0xffcc66)], // sign 1
@@ -161,7 +162,7 @@ export function getRoadColors(count: number = 122) {
     [3, new THREE.Color(0xcccccc)],
     [3, new THREE.Color(0x99bbcc)],
     [3, new THREE.Color(0xffffff)],
-    [10, new THREE.Color(0xcccccc)],
+    [10, new THREE.Color(0xffffff)],
   ];
 
   const colors = keyColors.reduce(

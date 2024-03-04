@@ -2,11 +2,13 @@ import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 import ship from "../assets/images/ship.png";
+import shadow from "../assets/images/shadow.png";
 
 export class Actor extends THREE.Group {
   private _cameraTarget: THREE.Object3D;
   private _cameraPosition: THREE.Object3D;
   private _mesh: THREE.Mesh;
+  private _shadow: THREE.Mesh;
   private _texture: THREE.Texture;
 
   constructor() {
@@ -14,6 +16,25 @@ export class Actor extends THREE.Group {
 
     this._cameraTarget = new THREE.Object3D();
     this._cameraPosition = new THREE.Object3D();
+
+    const texture = new THREE.TextureLoader().load(shadow);
+    texture.minFilter = THREE.NearestFilter;
+    texture.magFilter = THREE.NearestFilter;
+
+    const material = new THREE.MeshBasicMaterial({
+      transparent: true,
+      map: texture,
+      side: THREE.DoubleSide,
+      opacity: 0.5,
+    });
+    material.depthTest = false;
+    //material.depthWrite = false;
+
+    const plane = new THREE.PlaneGeometry(1, 0.5);
+
+    this._shadow = new THREE.Mesh(plane, material);
+    this._shadow.position.set(0, 0, 0.5);
+    this._shadow.renderOrder = 998;
 
     this._cameraTarget.position.setZ(-4);
     this._cameraTarget.position.setY(1);
@@ -25,17 +46,9 @@ export class Actor extends THREE.Group {
     this._texture.minFilter = THREE.NearestFilter;
     this._texture.magFilter = THREE.NearestFilter;
 
-    //const light = new THREE.DirectionalLight(0xffffff, 1);
-    //light.castShadow = true;
-    //light.shadow.mapSize.width = 512; // default
-    //light.shadow.mapSize.height = 512; // default
-    //light.shadow.camera.near = 0.5; // default
-    //light.shadow.camera.far = 500; // default
-    //light.position.set(0, 4, 0);
-
+    this.add(this._shadow);
     this.add(this._cameraPosition);
     this.add(this._cameraTarget);
-    //this.add(light);
 
     this.rotateY(Math.PI);
     this.loadModel();
@@ -53,9 +66,9 @@ export class Actor extends THREE.Group {
       if (this._mesh) {
         this._mesh.scale.multiplyScalar(0.005);
         this._mesh.rotateY(Math.PI);
-        this._mesh.position.setY(0.5);
+        this._mesh.position.setY(0.65);
         this._mesh.position.setZ(0.5);
-        this._mesh.castShadow = true;
+        this._mesh.renderOrder = 999;
 
         this.add(this._mesh);
         this.loadMaterial();

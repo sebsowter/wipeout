@@ -16,11 +16,11 @@ import skyback from "./src/assets/images/sky/skyback.png";
 type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "height_map" | "map";
 
 (function () {
-  const cameraMode: CameraMode = "camera";
+  const cameraMode: CameraMode = "player";
 
   const keys = new Keys();
 
-  const speedMax = 0.35;
+  const speedMax = 0.3;
   const speedAcceleration = 0.001;
   const speedDeceleration = 0.002;
 
@@ -52,8 +52,8 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
   const controls = new OrbitControls(camera, renderer.domElement);
 
   const curve = getRoadCurve();
-  //scene.background.minFilter = THREE.NearestFilter;
-  //scene.background.magFilter = THREE.NearestFilter;
+  scene.background.minFilter = THREE.NearestFilter;
+  scene.background.magFilter = THREE.NearestFilter;
 
   scene.add(terrain);
   scene.add(road(curve));
@@ -61,6 +61,7 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
   actor.position.set(16, 0, 0);
 
   let speed = 0;
+  let speedPrevious = 0;
   let rotationY = 0;
   let heightData: ImageData;
   let collisionData: ImageData;
@@ -85,17 +86,22 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
         actor.getWorldDirection(direction);
 
         // Handle stearing
-        if (keys.isLeftDown) {
-          if (!isLeftTurning) {
-            //rotationY = 0;
-            isLeftTurning = true;
+        if (keys.isLeftDown && keys.isRightDown) {
+          isLeftTurning = true;
+          isRightTurning = true;
+
+          if (rotationY > 0) {
+            rotationY = Math.max(rotationY - turnDeceleration, 0);
+          } else if (rotationY < 0) {
+            rotationY = Math.min(rotationY + turnDeceleration, 0);
           }
+        } else if (keys.isLeftDown) {
+          isLeftTurning = true;
+          isRightTurning = false;
           rotationY = Math.min(rotationY + turnAcceleration, turnMax);
         } else if (keys.isRightDown) {
-          if (!isRightTurning) {
-            //rotationY = 0;
-            isRightTurning = true;
-          }
+          isRightTurning = true;
+          isLeftTurning = false;
           rotationY = Math.max(rotationY - turnAcceleration, -turnMax);
         } else {
           isLeftTurning = false;
@@ -108,29 +114,51 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
           }
         }
 
-        actor.rotateY(rotationY);
+        const y = getHeight(heightData, actor.position, 0, 8.5);
 
-        const v = new THREE.Vector3().setFromEuler(actor.rotation);
-        v.lerp(new THREE.Vector3().setFromEuler(actor.rotation), 0.25);
-
-        const euler = new THREE.Euler();
-        euler.copy(actor.model.rotation);
-
+        // Handle tilt
+        const direction2 = new THREE.Vector2(direction.x, direction.z);
+        const angle = direction2.angle();
+        const forwardVector = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
+        const forwardPosition = actor.position.clone().add(new THREE.Vector3(forwardVector.x, 0, forwardVector.y));
+        const forwardHeight = getHeight(heightData, forwardPosition, 0, 8.5);
+        const heightDiff = y - forwardHeight;
+        const speedDiff = speed - speedPrevious;
         const quaternion = new THREE.Quaternion();
-        quaternion.setFromEuler(euler).rotateTowards(new THREE.Quaternion(), 0.25);
-        //quaternion.slerp(new THREE.Quaternion().setFromEuler(euler).clone().rotateTowards(rotationY), 0.25);
+        quaternion
+          .setFromEuler(actor.model.rotation)
+          .slerp(
+            new THREE.Quaternion().setFromEuler(
+              new THREE.Euler(Math.PI + 0.1 + heightDiff * 1 + speedDiff * 30, -rotationY * 5, Math.PI + rotationY * 30)
+            ),
+            0.1
+          );
 
-        actor.model.rotation.z = Math.PI + rotationY * 15;
+        const cameraQuaternion = new THREE.Quaternion();
+        cameraQuaternion
+          .setFromEuler(actor.cameraPosition.rotation)
+          .slerp(
+            new THREE.Quaternion().setFromEuler(
+              new THREE.Euler(actor.cameraPosition.rotation.x, actor.cameraPosition.rotation.y, Math.PI + rotationY * 5)
+            ),
+            0.25
+          );
 
-        actor.cameraPosition.rotation.z = Math.PI + rotationY * 5;
+        actor.rotateY(rotationY);
+        actor.model.rotation.setFromQuaternion(quaternion);
+        actor.cameraPosition.rotation.setFromQuaternion(cameraQuaternion);
+
+        //actor.cameraPosition.rotateZ()
         //actor.model.rotation;
 
         //cameraRoll.l;
 
         // Handle speedAcceleration
         if (keys.isUpDown) {
+          speedPrevious = speed;
           speed = Math.min(speed + speedAcceleration, speedMax);
         } else {
+          speedPrevious = speed;
           speed = Math.max(speed - speedDeceleration, 0);
         }
 
@@ -144,12 +172,15 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
 
           if (right > left) {
             energy.x += repulsionAmount;
+            speedPrevious = speed;
             speed *= 0.5;
           } else if (right < left) {
             energy.x += -repulsionAmount;
+            speedPrevious = speed;
             speed *= 0.5;
           } else {
             energy.z += -repulsionAmount;
+            speedPrevious = speed;
             speed *= 0.25;
           }
 
@@ -157,17 +188,6 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
         } else {
           repulsion.lerp(new THREE.Vector3(), 0.1);
         }
-
-        const y = getHeight(heightData, actor.position, 0, 8.5);
-
-        // Handle tilt
-        const direction2 = new THREE.Vector2(direction.x, direction.z);
-        const angle = direction2.angle();
-        const forwardVector = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
-        const forwardPosition = actor.position.clone().add(new THREE.Vector3(forwardVector.x, 0, forwardVector.y));
-        const forwardHeight = getHeight(heightData, forwardPosition, 0, 8.5);
-
-        tilt.copy(new THREE.Vector2(2, y - forwardHeight));
 
         // Update objects
         actor.position.add(direction.multiplyScalar(speed)).add(repulsion);
