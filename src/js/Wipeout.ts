@@ -127,7 +127,7 @@ export class Wipeout {
       const time = this.lapTimes[index];
       const element = document.createElement("p");
       element.className = "time-small";
-      element.style.top = `${2.4 + index * 2.4}rem`;
+      element.style.top = `${2.8 + index * 2.4}rem`;
 
       if (time) {
         element.innerText = `${index + 1}. ${getTimeString(time)}`;

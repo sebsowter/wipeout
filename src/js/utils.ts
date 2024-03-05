@@ -84,6 +84,12 @@ export function getTimeString(time: number) {
   )}`;
 }
 
+export function getTimeElement(time: number) {
+  return `${formatTwoDigits(Math.floor(time / 60))}:${formatTwoDigits(Math.floor(time % 60))}.${formatTwoDigits(
+    Math.floor((time % 1) * 100)
+  )}`;
+}
+
 export function rgbToHex(r: number, g: number, b: number) {
   return "#" + componentToHex(Math.floor(r)) + componentToHex(Math.floor(g)) + componentToHex(Math.floor(b));
 }

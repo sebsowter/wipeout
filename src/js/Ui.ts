@@ -151,31 +151,23 @@ export class Ui {
     this.timeElement.innerHTML = getTimeString(time);
   }
 
-  public setCameraMode(value: CameraMode) {
-    if (value === "player" && this.cameraMode !== "player") {
-      this.reset();
-      this.cameraMode = value;
-      this.isControllable = false;
-
+  public setState(value: number) {
+    if (value === 0) {
       gsap
         .timeline({
           onComplete: () => {
-            this.countdown();
+            dispatchEvent(new Event("COMPLETE"));
+            //this.countdown();
           },
         })
         .to(this.uiBottom, { y: "100%", duration: 1 })
         .to(this.uiTop, { y: "-100%", duration: 1 }, 0)
         .to(this.hud, { x: 0, duration: 0.5, ease: "Quint.easeOut" });
-    }
-
-    if (value === "camera" && this.cameraMode !== "camera") {
-      this.isControllable = false;
-
+    } else {
       gsap
         .timeline({
           onComplete: () => {
-            this.reset();
-            this.cameraMode = value;
+            dispatchEvent(new Event("COMPLETE"));
           },
         })
         .to(this.hud, { x: "-100%", duration: 0.5, ease: "Sine.easeIn" })
