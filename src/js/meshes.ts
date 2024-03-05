@@ -35,7 +35,7 @@ export const getHeightMap = () => {
       undefined,
       function () {
         reject();
-      },
+      }
     );
   });
 };
@@ -57,7 +57,7 @@ export const getCollisionMap = () => {
       undefined,
       function () {
         reject();
-      },
+      }
     );
   });
 };
@@ -393,7 +393,7 @@ export const getTerrain = (imageData: ImageData) => {
     imageData.width / 8,
     imageData.height / 8,
     imageData.width / 8,
-    imageData.height / 8,
+    imageData.height / 8
   );
 
   const mesh = new THREE.Mesh(geometry, material);
@@ -431,24 +431,24 @@ export const getRoadCurve = () => {
       new THREE.Vector3(16, 0, -32),
       new THREE.Vector3(16, 0, -48),
       new THREE.Vector3(32, 0, -40),
-      new THREE.Vector3(32, 0, -56),
-    ),
+      new THREE.Vector3(32, 0, -56)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(32, 0, -56),
       new THREE.Vector3(32, 0, -72),
       new THREE.Vector3(32, 2, -72),
-      new THREE.Vector3(32, 2, -88),
-    ),
+      new THREE.Vector3(32, 2, -88)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(32, 2, -88),
       new THREE.Vector3(32, 2, -100),
       new THREE.Vector3(16, 2, -100),
-      new THREE.Vector3(16, 2, -88),
-    ),
+      new THREE.Vector3(16, 2, -88)
+    )
   );
   curvePath.add(
     new THREE.CatmullRomCurve3(
@@ -462,24 +462,24 @@ export const getRoadCurve = () => {
         new THREE.Vector3(-24, 8, 48),
         new THREE.Vector3(-24, 8, 56),
       ],
-      false,
-    ),
+      false
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(-24, 8, 56),
       new THREE.Vector3(-24, 8, 64),
       new THREE.Vector3(-16, 7, 72),
-      new THREE.Vector3(-8, 7, 72),
-    ),
+      new THREE.Vector3(-8, 7, 72)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(-8, 7, 72),
       new THREE.Vector3(8, 7, 72),
       new THREE.Vector3(8, 8, 96),
-      new THREE.Vector3(24, 8, 96),
-    ),
+      new THREE.Vector3(24, 8, 96)
+    )
   );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(24, 8, 96), new THREE.Vector3(32, 8, 96)));
   curvePath.add(
@@ -487,16 +487,16 @@ export const getRoadCurve = () => {
       new THREE.Vector3(32, 8, 96),
       new THREE.Vector3(48, 8, 96),
       new THREE.Vector3(48, 4, 72),
-      new THREE.Vector3(32, 4, 72),
-    ),
+      new THREE.Vector3(32, 4, 72)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(32, 4, 72),
       new THREE.Vector3(8, 4, 72),
       new THREE.Vector3(16, 0, 48),
-      new THREE.Vector3(16, 0, 32),
-    ),
+      new THREE.Vector3(16, 0, 32)
+    )
   );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 32), new THREE.Vector3(16, 0, 0)));
 
@@ -511,24 +511,24 @@ export const getRoadCurve1 = () => {
       new THREE.Vector3(16, 0, -32),
       new THREE.Vector3(16, 0, -48),
       new THREE.Vector3(32, 0, -40),
-      new THREE.Vector3(32, 0, -56),
-    ),
+      new THREE.Vector3(32, 0, -56)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(32, 0, -56),
       new THREE.Vector3(32, 0, -72),
       new THREE.Vector3(32, 2, -72),
-      new THREE.Vector3(32, 2, -88),
-    ),
+      new THREE.Vector3(32, 2, -88)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(32, 2, -88),
       new THREE.Vector3(32, 2, -100),
       new THREE.Vector3(16, 2, -100),
-      new THREE.Vector3(16, 2, -88),
-    ),
+      new THREE.Vector3(16, 2, -88)
+    )
   );
 
   return curvePath;
@@ -548,24 +548,24 @@ export const getRoadCurve2 = () => {
         new THREE.Vector3(-24, 8, 48),
         new THREE.Vector3(-24, 8, 56),
       ],
-      false,
-    ),
+      false
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(-24, 8, 56),
       new THREE.Vector3(-24, 8, 64),
       new THREE.Vector3(-16, 7, 72),
-      new THREE.Vector3(-8, 7, 72),
-    ),
+      new THREE.Vector3(-8, 7, 72)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(-8, 7, 72),
       new THREE.Vector3(8, 7, 72),
       new THREE.Vector3(8, 8, 96),
-      new THREE.Vector3(24, 8, 96),
-    ),
+      new THREE.Vector3(24, 8, 96)
+    )
   );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(24, 8, 96), new THREE.Vector3(32, 8, 96)));
   curvePath.add(
@@ -573,16 +573,16 @@ export const getRoadCurve2 = () => {
       new THREE.Vector3(32, 8, 96),
       new THREE.Vector3(48, 8, 96),
       new THREE.Vector3(48, 4, 72),
-      new THREE.Vector3(32, 4, 72),
-    ),
+      new THREE.Vector3(32, 4, 72)
+    )
   );
   curvePath.add(
     new THREE.CubicBezierCurve3(
       new THREE.Vector3(32, 4, 72),
       new THREE.Vector3(8, 4, 72),
       new THREE.Vector3(16, 0, 48),
-      new THREE.Vector3(16, 0, 32),
-    ),
+      new THREE.Vector3(16, 0, 32)
+    )
   );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 32), new THREE.Vector3(16, 0, 0)));
 

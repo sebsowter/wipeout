@@ -13,9 +13,10 @@ import skytop from "../assets/images/sky/skytop.png";
 import skybottom from "../assets/images/sky/skybottom.png";
 import skyfront from "../assets/images/sky/skyfront.png";
 import skyback from "../assets/images/sky/skyback.png";
+import { Lights } from "./Lights";
 
-export const SPEED_BOOST = 0.4;
-export const SPEED_MAX = 0.325;
+export const SPEED_BOOST = 0.5;
+export const SPEED_MAX = 0.35;
 export const SPEED_ACCELERATION = 0.001;
 export const SPEED_DECELERATION = 0.002;
 
@@ -59,6 +60,8 @@ export class Wipeout {
   public uiTop: HTMLDivElement;
   public hudData: HTMLDivElement;
   public hudTimes: HTMLDivElement;
+  public environment: THREE.Object3D;
+  public lights: Lights;
 
   constructor(document: Document, width: number, height: number) {
     const heading1 = document.createElement("h3");
@@ -182,8 +185,12 @@ export class Wipeout {
 
     this.document.body.appendChild(this.renderer.domElement);
 
+    this.environment = road(this.curve);
+    this.lights = new Lights(new THREE.Vector3(16, 2, -2));
+
     this.scene.add(new Terrain());
-    this.scene.add(road(this.curve));
+    this.scene.add(this.environment);
+    this.scene.add(this.lights);
     this.scene.add(this.actor);
     this.actor.position.set(16, 0, 0);
 
@@ -418,7 +425,7 @@ export class Wipeout {
         })
         .to(this.uiBottom, { y: "100%", duration: 1 })
         .to(this.uiTop, { y: "-100%", duration: 1 }, 0)
-        .to(this.hud, { x: 0, duration: 0.25 });
+        .to(this.hud, { x: 0, duration: 0.5, ease: "Quint.easeOut" });
     }
 
     if (value === "camera" && this.cameraMode !== "camera") {
@@ -431,7 +438,7 @@ export class Wipeout {
             this.cameraMode = value;
           },
         })
-        .to(this.hud, { x: "-100%", duration: 0.5 })
+        .to(this.hud, { x: "-100%", duration: 0.5, ease: "Sine.easeIn" })
         .to(this.uiBottom, { y: "0", duration: 1 })
         .to(this.uiTop, { y: "0", duration: 1 }, 0.5);
     }
@@ -461,12 +468,36 @@ export class Wipeout {
     this.actor.model.rotation.set(0, Math.PI, 0);
     this.actor.shadow.rotation.y = 0;
     this.setLapTime(0);
+    this.lights.setState(0);
   }
 
   public countdown() {
-    setTimeout(() => {
-      this.lapTimeStart = this.clock.getElapsedTime();
-      this.isControllable = true;
-    }, 3000);
+    const tweener = {
+      x: 0,
+    };
+
+    this.lights.setState(0);
+
+    gsap
+      .timeline({
+        onComplete: () => {
+          this.lapTimeStart = this.clock.getElapsedTime();
+          this.isControllable = true;
+        },
+      })
+      .to(tweener, {
+        x: 1000,
+        duration: 1.5,
+        onComplete: () => {
+          this.lights.setState(1);
+        },
+      })
+      .to(tweener, {
+        x: 2000,
+        duration: 1.5,
+        onComplete: () => {
+          this.lights.setState(2);
+        },
+      });
   }
 }
