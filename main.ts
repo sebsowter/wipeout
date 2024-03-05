@@ -1,21 +1,25 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-
-import { getCollisionMap, getHeightMap, getRoadCurve, road } from "./src/js/meshes";
-import { createCollisionMap, createHeightMap, getCollision, getHeight } from "./src/js/utils";
-import { Actor } from "./src/js/Actor";
-import { Terrain } from "./src/js/Terrain";
-import { Keys } from "./src/js/Keys";
-import skyleft from "./src/assets/images/sky/skyleft.png";
-import skyright from "./src/assets/images/sky/skyright.png";
-import skytop from "./src/assets/images/sky/skytop.png";
-import skybottom from "./src/assets/images/sky/skybottom.png";
-import skyfront from "./src/assets/images/sky/skyfront.png";
-import skyback from "./src/assets/images/sky/skyback.png";
-
-type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "height_map" | "map";
+import { Wipeout } from "./src/js/Wipeout";
 
 (function () {
+  const wipeout = new Wipeout(document, window.innerWidth, window.innerHeight);
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    wipeout.update();
+  }
+
+  window.addEventListener("resize", () => {
+    wipeout.resize(window.innerWidth, window.innerHeight);
+  }, false);
+  
+  window.addEventListener("fullscreen", () => {
+    wipeout.resize(window.innerWidth, window.innerHeight);
+  }, false);
+
+  animate();
+
+  /*
   const cameraMode: CameraMode = "player";
 
   const keys = new Keys();
@@ -131,9 +135,13 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
           .setFromEuler(actor.model.rotation)
           .slerp(
             new THREE.Quaternion().setFromEuler(
-              new THREE.Euler(Math.PI + 0.1 + heightDiff * 1 + speedDiff * 30, -rotationY * 5, Math.PI + rotationY * 30)
+              new THREE.Euler(
+                Math.PI + 0.1 + heightDiff * 1 + speedDiff * 30,
+                -rotationY * 5,
+                Math.PI + rotationY * 30,
+              ),
             ),
-            0.1
+            0.1,
           );
 
         const cameraQuaternion = new THREE.Quaternion();
@@ -141,9 +149,13 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
           .setFromEuler(actor.cameraPosition.rotation)
           .slerp(
             new THREE.Quaternion().setFromEuler(
-              new THREE.Euler(actor.cameraPosition.rotation.x, actor.cameraPosition.rotation.y, Math.PI + rotationY * 5)
+              new THREE.Euler(
+                actor.cameraPosition.rotation.x,
+                actor.cameraPosition.rotation.y,
+                Math.PI + rotationY * 5,
+              ),
             ),
-            0.25
+            0.25,
           );
 
         actor.rotateY(rotationY);
@@ -247,7 +259,7 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
       timeing.style.left = "48px";
       timeing.style.fontSize = "2rem";
       timeing.style.fontFamily = "wipeout";
-      timeing.style.color = "#ffffff";
+      timeing.style.color = "#f9b714";
       timeing.style.margin = "0";
 
       lapTimes.map((time, index) => {
@@ -258,7 +270,7 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
         timeing2.style.left = "48px";
         timeing2.style.fontSize = "2rem";
         timeing2.style.fontFamily = "wipeout";
-        timeing2.style.color = "#f9b714";
+        timeing2.style.color = "#ffffff";
         timeing2.style.margin = "0";
 
         document.body.appendChild(timeing2);
@@ -300,4 +312,5 @@ type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "he
   }
 
   init();
+  */
 })();

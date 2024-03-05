@@ -19,7 +19,7 @@ export function getHeight(heightData: ImageData, position: THREE.Vector3, min = 
 export function getCollision(
   heightData: ImageData,
   position: THREE.Vector3,
-  rotationY: THREE.Vector3
+  rotationY: THREE.Vector3,
 ): [number, number] {
   const pixel = getPixel(heightData, new THREE.Vector2(position.x, position.z), 8);
   const direction = new THREE.Vector2(rotationY.x, rotationY.z);
@@ -29,18 +29,18 @@ export function getCollision(
     const [r] = pixel;
 
     if (r === 255) {
-      const repulsionVLeft = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle - Math.PI / 2);
-      const repulsionVRight = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle + Math.PI / 2);
+      const hitLeft = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle - Math.PI / 2);
+      const hitRight = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle + Math.PI / 2);
 
       const [left] = getPixel(
         heightData,
-        new THREE.Vector2(repulsionVLeft.x, repulsionVLeft.y).add(new THREE.Vector2(position.x, position.z)),
-        8
+        new THREE.Vector2(hitLeft.x, hitLeft.y).add(new THREE.Vector2(position.x, position.z)),
+        8,
       );
       const [right] = getPixel(
         heightData,
-        new THREE.Vector2(repulsionVRight.x, repulsionVRight.y).add(new THREE.Vector2(position.x, position.z)),
-        8
+        new THREE.Vector2(hitRight.x, hitRight.y).add(new THREE.Vector2(position.x, position.z)),
+        8,
       );
 
       return [left / 255, right / 255];
@@ -69,6 +69,17 @@ export function componentToHex(c: number) {
   const hex = c.toString(16);
 
   return hex.length == 1 ? "0" + hex : hex;
+}
+
+export function formatTwoDigits(value: number) {
+  return value.toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false,
+  });
+}
+
+export function getTimeString(time: number) {
+  return `${formatTwoDigits(Math.floor(time / 60))}:${formatTwoDigits(Math.floor(time % 60))}.${formatTwoDigits(Math.floor((time % 1) * 100))}`;
 }
 
 export function rgbToHex(r: number, g: number, b: number) {
@@ -143,7 +154,7 @@ export function createCollisionMap(curve: THREE.CurvePath<THREE.Vector3>) {
   context.getImageData(0, 0, width, height);
 }
 
-export function getRoadColors(count: number = 122) {
+export function getRoadColors() {
   const keyColors: [number, THREE.Color][] = [
     [2, new THREE.Color(0xffffff)],
     [3, new THREE.Color(0xcccccc)],
@@ -175,7 +186,7 @@ export function getRoadColors(count: number = 122) {
 
       return [...previous, ...current];
     },
-    [new THREE.Color(0xcccccc)]
+    [new THREE.Color(0xcccccc)],
   );
 
   return colors;

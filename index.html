@@ -6,11 +6,125 @@
     <style>
       @font-face {
         font-family: wipeout;
-        src: url("./src/assets/fonts/wipeout-64.ttf");
+        src: url("./fonts/wipeout-64.ttf");
       }
 
       body {
+        position: relative;
         margin: 0;
+      }
+
+      .hud {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .hud-times {
+        position: absolute;
+        top: 3.2rem;
+        left: 3.2rem;
+      }
+
+      button {
+        background-color: #f9b714;
+        outline: 0;
+        border: 0;
+        font-family: wipeout;
+        font-size: 2rem;
+        padding: 1rem 2rem;
+        clip-path: polygon(0% 0%, 100% 0, 100% 70%, 90% 100%, 0% 100%);
+      }
+
+      button:hover {
+        cursor: pointer;
+      }
+
+      .ui {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .ui-bottom {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 20%;
+        background-color: black;
+      }
+
+      .ui-bottom2 {
+        position: absolute;
+        bottom: 3.2rem;
+        left: 3.2rem;
+      }
+
+      .ui-bottom2 button {
+        font-size: 1.6rem;
+        padding: 0.5rem 1rem;
+      }
+
+      .ui-top {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 20%;
+        background-color: black;
+      }
+
+      h3 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-family: wipeout;
+        font-size: 1.6rem;
+        color: #f9b714;
+        margin: 0;
+        width: max-content;
+      }
+
+      p {
+        font-family: wipeout;
+        font-size: 2rem;
+        color: white;
+        margin: 0;
+        width: max-content;
+      }
+
+      .time-small {
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-family: wipeout;
+        font-size: 1.6rem;
+        color: white;
+      }
+
+      .time-large {
+        position: absolute;
+        top: 2.4rem;
+        left: 0;
+        font-family: wipeout;
+        font-size: 5rem;
+        color: white;
       }
     </style>
   </head>
