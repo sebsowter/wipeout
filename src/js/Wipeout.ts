@@ -45,7 +45,7 @@ export class Wipeout {
   public lapTime = 0;
   public lapTimeStart = 0;
   public lapTimeElements: HTMLParagraphElement[];
-  public lapTimes = [0, 0, 0];
+  public lapTimes: number[] = [];
   public renderer: THREE.WebGLRenderer;
   public repulsion = new THREE.Vector3();
   public rotationY = 0;
@@ -57,6 +57,7 @@ export class Wipeout {
   public uiBottom: HTMLDivElement;
   public uiBottom2: HTMLDivElement;
   public uiTop: HTMLDivElement;
+  public hudData: HTMLDivElement;
   public hudTimes: HTMLDivElement;
 
   constructor(document: Document, width: number, height: number) {
@@ -65,7 +66,6 @@ export class Wipeout {
 
     const heading2 = document.createElement("h3");
     heading2.innerText = "LAP RECORD";
-    heading2.style.top = "10rem";
 
     const button = document.createElement("button");
     button.innerText = "PLAY";
@@ -86,6 +86,9 @@ export class Wipeout {
     this.hud = document.createElement("div");
     this.hud.className = "hud";
 
+    this.hudData = document.createElement("div");
+    this.hudData.className = "hud-data";
+
     this.hudTimes = document.createElement("div");
     this.hudTimes.className = "hud-times";
 
@@ -102,28 +105,36 @@ export class Wipeout {
     this.timeElement = document.createElement("p");
     this.timeElement.className = "time-large";
 
-    this.hudTimes.appendChild(heading1);
+    this.hudData.appendChild(heading1);
+    this.hudData.appendChild(this.timeElement);
+    this.hudData.appendChild(this.uiBottom2);
+    this.hudData.appendChild(this.hudTimes);
     this.hudTimes.appendChild(heading2);
-    this.hudTimes.appendChild(this.timeElement);
-    this.hudTimes.appendChild(this.uiBottom2);
 
-    gsap.set(this.hud, { x: -1000 });
+    gsap.set(this.hud, { x: "-100%" });
+    gsap.set(this.hudTimes, { x: "-50rem" });
 
-    this.hud.appendChild(this.hudTimes);
+    this.hud.appendChild(this.hudData);
     this.hud.appendChild(this.uiBottom2);
 
     this.ui.appendChild(this.uiTop);
     this.ui.appendChild(this.uiBottom);
 
-    this.lapTimeElements = this.lapTimes.map((time, index) => {
+    this.lapTimeElements = Array.from(Array(3)).map((_, index) => {
+      const time = this.lapTimes[index];
       const element = document.createElement("p");
       element.className = "time-small";
-      element.innerText = `${index + 1}. ${getTimeString(time)}`;
-      element.style.top = `${12.4 + index * 2.4}rem`;
+      element.style.top = `${2.4 + index * 2.4}rem`;
 
-      this.hudTimes.appendChild(element);
+      if (time) {
+        element.innerText = `${index + 1}. ${getTimeString(time)}`;
+      }
 
       return element;
+    });
+
+    this.lapTimeElements.forEach((element) => {
+      this.hudTimes.appendChild(element);
     });
 
     this.setLapTime(this.lapTime);
@@ -251,9 +262,9 @@ export class Wipeout {
 
       if (this.isControllable) {
         this.updateThrottle();
-        this.updateCollision(direction3);
       }
 
+      this.updateCollision(direction3);
       this.updateLap();
 
       this.actor.rotateY(this.rotationY);
@@ -277,13 +288,26 @@ export class Wipeout {
   }
 
   private endLap() {
-    this.lapTimes = this.lapTimes.reduce((acc, current) => {
-      if (this.lapTime < current) {
-        return [...acc, this.lapTime, current];
-      }
+    this.lapTimes = this.lapTimes.reduce(
+      (acc, current) => {
+        const last = acc.pop();
 
-      return [...acc, current];
-    }, []);
+        if (current < last) {
+          return [...acc, current, last];
+        }
+
+        return [...acc, last, current];
+      },
+      [this.lapTime]
+    );
+
+    this.lapTimes = [...this.lapTimes].slice(0, 3);
+
+    console.log("this.lapTime", this.lapTime);
+    console.log("this.lapTimes", this.lapTimes);
+
+    this.setLapTimes();
+
     this.lapTimeStart = this.clock.getElapsedTime();
   }
 
@@ -403,12 +427,27 @@ export class Wipeout {
       gsap
         .timeline({
           onComplete: () => {
+            this.reset();
             this.cameraMode = value;
           },
         })
-        .to(this.hud, { x: -1000, duration: 0.5 })
+        .to(this.hud, { x: "-100%", duration: 0.5 })
         .to(this.uiBottom, { y: "0", duration: 1 })
         .to(this.uiTop, { y: "0", duration: 1 }, 0.5);
+    }
+  }
+
+  public setLapTimes() {
+    this.lapTimeElements.forEach((element, index) => {
+      const time = this.lapTimes[index];
+
+      if (time) {
+        element.innerText = `${index + 1}. ${getTimeString(time)}`;
+      }
+    });
+
+    if (this.lapTimes.length) {
+      gsap.to(this.hudTimes, { x: 0, duration: 0.5 });
     }
   }
 

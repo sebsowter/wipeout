@@ -9,6 +9,18 @@
         src: url("./fonts/wipeout-64.ttf");
       }
 
+      @media screen and (max-width: 1000px), screen and (max-height: 480px) {
+        html {
+          font-size: 75%;
+        }
+      }
+
+      @media screen and (max-width: 600px), screen and (max-height: 320px) {
+        html {
+          font-size: 50%;
+        }
+      }
+
       body {
         position: relative;
         margin: 0;
@@ -24,10 +36,16 @@
         height: 100%;
       }
 
-      .hud-times {
+      .hud-data {
         position: absolute;
         top: 3.2rem;
         left: 3.2rem;
+      }
+
+      .hud-times {
+        position: absolute;
+        top: 9.6rem;
+        left: 0;
       }
 
       button {
@@ -38,6 +56,7 @@
         font-size: 2rem;
         padding: 1rem 2rem;
         clip-path: polygon(0% 0%, 100% 0, 100% 70%, 90% 100%, 0% 100%);
+        color: black;
       }
 
       button:hover {
