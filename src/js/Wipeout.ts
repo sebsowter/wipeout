@@ -32,7 +32,7 @@ export type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map
 export class Wipeout {
   public actor: Actor;
   public camera: THREE.PerspectiveCamera;
-  public cameraMode: CameraMode = "camera";
+  public cameraMode: CameraMode = "orbit";
   public checkpoint = false;
   public clock: THREE.Clock;
   public collisionMap: ImageData;
@@ -181,8 +181,6 @@ export class Wipeout {
   }
 
   private init() {
-    const manager = new THREE.LoadingManager();
-
     this.document.body.appendChild(this.renderer.domElement);
 
     this.environment = road(this.curve);
@@ -462,8 +460,9 @@ export class Wipeout {
     this.rotationY = 0;
     this.speed = 0;
     this.speedPrevious = 0;
+    this.checkpoint = false;
     this.repulsion.copy(new THREE.Vector3());
-    this.actor.position.set(16, 0, 0);
+    this.actor.position.set(16, 0, 1);
     this.actor.rotation.set(0, Math.PI, 0);
     this.actor.model.rotation.set(0, Math.PI, 0);
     this.actor.shadow.rotation.y = 0;

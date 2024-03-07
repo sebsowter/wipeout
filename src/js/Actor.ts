@@ -30,16 +30,16 @@ export class Actor extends THREE.Group {
     material.depthTest = false;
     //material.depthWrite = false;
 
-    const plane = new THREE.PlaneGeometry(1, 0.5);
+    const plane = new THREE.PlaneGeometry(0.75, 0.375);
 
     this._shadow = new THREE.Mesh(plane, material);
-    this._shadow.position.set(0, 0, 0.5);
+    this._shadow.position.set(0, 0, 0);
     this._shadow.renderOrder = 998;
 
     this._cameraTarget.position.setZ(-4);
-    this._cameraTarget.position.setY(1);
+    this._cameraTarget.position.setY(0.5);
     this._cameraPosition.position.setZ(-0.75);
-    this._cameraPosition.position.setY(1);
+    this._cameraPosition.position.setY(0.6);
     this._cameraPosition.lookAt(this._cameraTarget.position);
 
     this._texture = new THREE.TextureLoader().load(ship);
@@ -64,10 +64,10 @@ export class Actor extends THREE.Group {
       });
 
       if (this._mesh) {
-        this._mesh.scale.multiplyScalar(0.05);
+        this._mesh.scale.multiplyScalar(0.06);
         this._mesh.rotateY(Math.PI);
-        this._mesh.position.setY(0.65);
-        this._mesh.position.setZ(0.5);
+        this._mesh.position.setY(0.4);
+        this._mesh.position.setZ(0);
         this._mesh.renderOrder = 999;
 
         this.add(this._mesh);
