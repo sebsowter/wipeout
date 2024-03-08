@@ -31,7 +31,21 @@ export class Lights extends THREE.Group {
 
     const geometry = new THREE.PlaneGeometry(1.5, 0.5);
     const mesh = new THREE.Mesh(geometry, this._material);
+    mesh.position.set(0, 2, 0);
 
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x666666,
+    });
+
+    const geometry1 = new THREE.BoxGeometry(3.1, 0.1, 0.1);
+    const mesh1 = new THREE.Mesh(geometry1, material);
+    mesh1.position.set(1.5, 2.3, 0);
+    const geometry2 = new THREE.BoxGeometry(0.1, 2.25, 0.1);
+    const mesh2 = new THREE.Mesh(geometry2, material);
+    mesh2.position.set(3, 1.125, 0);
+
+    this.add(mesh1);
+    this.add(mesh2);
     this.add(mesh);
   }
 

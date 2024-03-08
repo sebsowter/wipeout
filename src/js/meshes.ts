@@ -13,6 +13,7 @@ import track2Url from "../assets/images/track2.png";
 import track3Url from "../assets/images/track3.png";
 import track4Url from "../assets/images/track4.png";
 import track5Url from "../assets/images/track5.png";
+import track6Url from "../assets/images/track6.png";
 import standUrl from "../assets/images/stand.png";
 import rock from "../assets/images/rock.png";
 import displacement from "../assets/images/displacement.png";
@@ -219,28 +220,28 @@ export const roadSegmentCorner = () => {
     let x = vertex.x;
 
     if (indexX === 0) {
-      x = 1.6;
+      x = 1.7;
       z = -0.5;
     }
 
     if (indexX === 1) {
-      x = -1.6;
+      x = -1.7;
       z = -0.5;
     }
 
     if (indexX === 2) {
-      x = -2.6;
-      z = 0.5;
+      x = -2.7;
+      z = 0.6;
     }
 
     if (indexX === 3) {
-      x = -2.5;
-      z = 0.5;
+      x = -2.6;
+      z = 0.6;
     }
 
     if (indexX === 13) {
-      x = 2.5;
-      z = 0.5;
+      x = 2.6;
+      z = 0.6;
     }
 
     if (indexX === 14) {
@@ -249,12 +250,12 @@ export const roadSegmentCorner = () => {
     }
 
     if (indexX === 15) {
-      x = 2.6;
+      x = 2.7;
       z = 0.5;
     }
 
     if (indexX === 16) {
-      x = 1.6;
+      x = 1.7;
       z = -0.5;
     }
 
@@ -299,13 +300,13 @@ export const roadSegmentTunnel = () => {
     }
 
     if (indexX === 3) {
-      x = -2.5;
-      z = 0.5;
+      x = -2.6;
+      z = 0.6;
     }
 
     if (indexX === 13) {
-      x = 2.5;
-      z = 0.5;
+      x = 2.6;
+      z = 0.6;
     }
 
     if (indexX === 14) {
@@ -354,32 +355,32 @@ export const roadSegmentDefault = (length = 8) => {
     }
 
     if (indexX === 1) {
-      x = -1.6;
+      x = -1.7;
       z = -0.5;
     }
 
     if (indexX === 2) {
-      x = -2.6;
-      z = 0.5;
+      x = -2.7;
+      z = 0.6;
     }
 
     if (indexX === 3) {
-      x = -2.5;
-      z = 0.5;
+      x = -2.6;
+      z = 0.6;
     }
 
     if (indexX === 13) {
-      x = 2.5;
-      z = 0.5;
+      x = 2.6;
+      z = 0.6;
     }
 
     if (indexX === 14) {
-      x = 2.6;
-      z = 0.5;
+      x = 2.7;
+      z = 0.6;
     }
 
     if (indexX === 15) {
-      x = 1.6;
+      x = 1.7;
       z = -0.5;
     }
 
@@ -632,6 +633,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   const groundTexture3 = new THREE.TextureLoader().load(track3Url);
   const groundTexture4 = new THREE.TextureLoader().load(track4Url);
   const groundTexture5 = new THREE.TextureLoader().load(track5Url);
+  const groundTexture6 = new THREE.TextureLoader().load(track6Url);
 
   groundTexture1.minFilter = THREE.NearestFilter;
   groundTexture1.magFilter = THREE.NearestFilter;
@@ -643,6 +645,8 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
   groundTexture4.magFilter = THREE.NearestFilter;
   groundTexture5.minFilter = THREE.NearestFilter;
   groundTexture5.magFilter = THREE.NearestFilter;
+  groundTexture6.minFilter = THREE.NearestFilter;
+  groundTexture6.magFilter = THREE.NearestFilter;
 
   const material1 = new THREE.MeshBasicMaterial({
     color: 0x99bbcc,
@@ -664,20 +668,23 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
     color: 0xcccccc,
     map: groundTexture5,
   });
+  const material6 = new THREE.MeshBasicMaterial({
+    color: 0x00ffff,
+    transparent: true,
+    map: groundTexture6,
+  });
   material1.map.encoding = THREE.sRGBEncoding;
   material2.map.encoding = THREE.sRGBEncoding;
   material3.map.encoding = THREE.sRGBEncoding;
   material4.map.encoding = THREE.sRGBEncoding;
   material5.map.encoding = THREE.sRGBEncoding;
+  material6.map.encoding = THREE.sRGBEncoding;
 
   const start = 74;
   const step = 4;
-  const step2 = 8;
   const splineLength = spline.getLength();
   const stepCount = splineLength / step;
   const stepCountRounded = Math.ceil(stepCount);
-  const stepCount2 = splineLength / step2;
-  const stepCountRounded2 = Math.ceil(stepCount2);
   const increment = 1 / stepCount;
   const colors = getRoadColors();
   console.log("splineLength", splineLength);
@@ -690,6 +697,7 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
     new InstancedFlow(stepCountRounded, 1, longGeometry, material3),
     new InstancedFlow(stepCountRounded, 1, tunnelGeometry, material4),
     new InstancedFlow(stepCountRounded, 1, defaultGeometry, material5),
+    new InstancedFlow(stepCountRounded, 1, defaultGeometry, material6),
   ].forEach((flow, index) => {
     flow.updateCurve(0, spline);
 
@@ -740,6 +748,18 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>) => {
       for (let i = 9; i < 10; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
         flow.object3D.setColorAt(i, colors[i % colors.length]);
+      }
+    }
+
+    if (index === 5) {
+      for (let i = 52; i < 53; i++) {
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
+        //flow.object3D.setColorAt(i, new THREE.Color(0x00ffff));
+      }
+
+      for (let i = 66; i < 67; i++) {
+        flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
+        //flow.object3D.setColorAt(i, new THREE.Color(0x00ffff));
       }
     }
 

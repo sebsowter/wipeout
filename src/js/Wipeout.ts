@@ -14,9 +14,12 @@ import skybottom from "../assets/images/sky/skybottom.png";
 import skyfront from "../assets/images/sky/skyfront.png";
 import skyback from "../assets/images/sky/skyback.png";
 import { Lights } from "./Lights";
+import { TimeElement } from "./TimeElement";
+import { TimeItemElement } from "./TimeItemElement";
 
-export const SPEED_BOOST = 0.5;
-export const SPEED_MAX = 0.35;
+export const SPEED_MAX = 0.33;
+export const SPEED_BOOST_MAX = 0.5;
+export const SPEED_BOOST_ACCELERATION = SPEED_BOOST_MAX - SPEED_MAX;
 export const SPEED_ACCELERATION = 0.001;
 export const SPEED_DECELERATION = 0.002;
 
@@ -32,7 +35,7 @@ export type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map
 export class Wipeout {
   public actor: Actor;
   public camera: THREE.PerspectiveCamera;
-  public cameraMode: CameraMode = "orbit";
+  public cameraMode: CameraMode = "camera";
   public checkpoint = false;
   public clock: THREE.Clock;
   public collisionMap: ImageData;
@@ -45,7 +48,7 @@ export class Wipeout {
   public keys: Keys;
   public lapTime = 0;
   public lapTimeStart = 0;
-  public lapTimeElements: HTMLParagraphElement[];
+  public lapTimeElements: TimeItemElement[];
   public lapTimes: number[] = [];
   public renderer: THREE.WebGLRenderer;
   public repulsion = new THREE.Vector3();
@@ -53,7 +56,7 @@ export class Wipeout {
   public scene: THREE.Scene;
   public speed = 0;
   public speedPrevious = 0;
-  public timeElement: HTMLParagraphElement;
+  public timeElement: TimeElement;
   public ui: HTMLDivElement;
   public uiBottom: HTMLDivElement;
   public uiBottom2: HTMLDivElement;
@@ -105,11 +108,10 @@ export class Wipeout {
     this.uiBottom2.className = "ui-bottom2";
     this.uiBottom2.appendChild(button2);
 
-    this.timeElement = document.createElement("p");
-    this.timeElement.className = "time-large";
+    this.timeElement = new TimeElement(0);
 
     this.hudData.appendChild(heading1);
-    this.hudData.appendChild(this.timeElement);
+    this.hudData.appendChild(this.timeElement.container);
     this.hudData.appendChild(this.uiBottom2);
     this.hudData.appendChild(this.hudTimes);
     this.hudTimes.appendChild(heading2);
@@ -125,19 +127,17 @@ export class Wipeout {
 
     this.lapTimeElements = Array.from(Array(3)).map((_, index) => {
       const time = this.lapTimes[index];
-      const element = document.createElement("p");
-      element.className = "time-small";
-      element.style.top = `${2.8 + index * 2.4}rem`;
+      const element = new TimeItemElement(time, index);
 
       if (time) {
-        element.innerText = `${index + 1}. ${getTimeString(time)}`;
+        element.setValue(time);
       }
 
       return element;
     });
 
     this.lapTimeElements.forEach((element) => {
-      this.hudTimes.appendChild(element);
+      this.hudTimes.appendChild(element.container);
     });
 
     this.setLapTime(this.lapTime);
@@ -184,7 +184,7 @@ export class Wipeout {
     this.document.body.appendChild(this.renderer.domElement);
 
     this.environment = road(this.curve);
-    this.lights = new Lights(new THREE.Vector3(16, 2, -2));
+    this.lights = new Lights(new THREE.Vector3(16, 0, -2));
 
     this.scene.add(new Terrain());
     this.scene.add(this.environment);
@@ -235,18 +235,12 @@ export class Wipeout {
       const currentY = getHeight(this.heightMap, forward3, HEIGHT_MIN, HEIGHT_MAX);
 
       const deltaY = previousY - currentY;
-      const deltaSpeed = this.speed - this.speedPrevious;
 
-      const modelQuaternion = new THREE.Quaternion();
-      modelQuaternion
+      const modelQuaternion = new THREE.Quaternion()
         .setFromEuler(this.actor.model.rotation.clone())
         .slerp(
           new THREE.Quaternion().setFromEuler(
-            new THREE.Euler(
-              Math.PI + 0.1 + deltaY * 1 + deltaSpeed * 30,
-              -this.rotationY * 5,
-              Math.PI + this.rotationY * 30
-            )
+            new THREE.Euler(Math.PI + deltaY * 1, -this.rotationY * 5, Math.PI + this.rotationY * 30)
           ),
           0.1
         );
@@ -275,7 +269,7 @@ export class Wipeout {
       this.actor.rotateY(this.rotationY);
       this.actor.cameraPosition.rotation.setFromQuaternion(cameraQuaternion);
       this.actor.model.rotation.setFromQuaternion(modelQuaternion);
-      this.actor.shadow.rotation.y = -this.rotationY * 5;
+      this.actor.shadow.rotation.y = -this.actor.model.rotation.y * -2;
       this.actor.position.add(direction3.multiplyScalar(this.speed)).add(this.repulsion);
       this.actor.position.lerp(this.actor.position.clone().setY(previousY), 0.25);
 
@@ -308,9 +302,6 @@ export class Wipeout {
 
     this.lapTimes = [...this.lapTimes].slice(0, 3);
 
-    console.log("this.lapTime", this.lapTime);
-    console.log("this.lapTimes", this.lapTimes);
-
     this.setLapTimes();
 
     this.lapTimeStart = this.clock.getElapsedTime();
@@ -318,7 +309,7 @@ export class Wipeout {
 
   private setLapTime(time: number) {
     this.lapTime = time;
-    this.timeElement.innerHTML = getTimeString(time);
+    this.timeElement.setValue(time);
   }
 
   private updateCamera() {
@@ -342,7 +333,8 @@ export class Wipeout {
           this.checkpoint = true;
         }
       } else if (r === 255 && g === 0) {
-        this.speed = SPEED_BOOST;
+        this.speedPrevious = this.speed;
+        this.speed = Math.min(this.speed + SPEED_BOOST_ACCELERATION, SPEED_BOOST_MAX);
       }
     }
   }
@@ -447,7 +439,7 @@ export class Wipeout {
       const time = this.lapTimes[index];
 
       if (time) {
-        element.innerText = `${index + 1}. ${getTimeString(time)}`;
+        element.setValue(time);
       }
     });
 
