@@ -2,11 +2,28 @@ import gsap from "gsap";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-import { getCollisionMap, getHeightMap, getRoadCurve, road } from "./meshes";
+import { getMap, getRoadCurve, road } from "./meshes";
 import { createCollisionMap, createHeightMap, getCollision, getHeight, getPixel, getTimeString } from "./utils";
 import { Actor } from "./Actor";
 import { Terrain } from "./Terrain";
 import { Keys } from "./Keys";
+import screen1 from "../assets/images/screenFront.png";
+import screen2 from "../assets/images/screen2.png";
+import screen3 from "../assets/images/screen3.png";
+import screen4 from "../assets/images/screen4.png";
+import buildingUrl from "../assets/images/building.png";
+import pillarUrl from "../assets/images/pillar.png";
+import terrain from "../assets/images/terrain.png";
+import track1Url from "../assets/images/track1.png";
+import track2Url from "../assets/images/track2.png";
+import track3Url from "../assets/images/track3.png";
+import track4Url from "../assets/images/track4.png";
+import track5Url from "../assets/images/track5.png";
+import track6Url from "../assets/images/track6.png";
+import displacement from "../assets/images/displacement.png";
+import collisionMap from "../assets/images/collision.png";
+import rock from "../assets/images/rock.png";
+import standUrl from "../assets/images/stand.png";
 import skyleft from "../assets/images/sky/skyleft.png";
 import skyright from "../assets/images/sky/skyright.png";
 import skytop from "../assets/images/sky/skytop.png";
@@ -65,6 +82,7 @@ export class Wipeout {
   public hudTimes: HTMLDivElement;
   public environment: THREE.Object3D;
   public lights: Lights;
+  public textures: { [key: string]: THREE.Texture } = {};
 
   constructor(document: Document, width: number, height: number) {
     const heading1 = document.createElement("h3");
@@ -150,7 +168,40 @@ export class Wipeout {
     this.camera = new THREE.PerspectiveCamera(100, width / height, 0.1, 1000);
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(width, height);
-    this.scene.background = new THREE.CubeTextureLoader().load([
+    this.curve = getRoadCurve();
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.keys = new Keys();
+    this.preload();
+  }
+
+  private loadCollisionMap() {
+    this.collisionMap = getMap(this.textures.collisionMap);
+  }
+
+  private loadHeightMap() {
+    this.heightMap = getMap(this.textures.heightMap);
+  }
+
+  private preload() {
+    const manager = new THREE.LoadingManager();
+    manager.onStart = (url, itemsLoaded, itemsTotal) => {
+      console.log("Started loading file: " + url + ".\nLoaded " + itemsLoaded + " of " + itemsTotal + " files.");
+    };
+
+    manager.onLoad = () => {
+      console.log("Loading complete!");
+      this.init();
+    };
+
+    manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+      console.log("Loading file: " + url + ".\nLoaded " + itemsLoaded + " of " + itemsTotal + " files.");
+    };
+
+    manager.onError = (url) => {
+      console.log("There was an error loading " + url);
+    };
+
+    this.scene.background = new THREE.CubeTextureLoader(manager).load([
       skyright,
       skyleft,
       skytop,
@@ -160,36 +211,102 @@ export class Wipeout {
     ]);
     this.scene.background.minFilter = THREE.NearestFilter;
     this.scene.background.magFilter = THREE.NearestFilter;
-    this.curve = getRoadCurve();
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.keys = new Keys();
-    this.loadHeightMap();
-    this.loadCollisionMap();
-    this.init();
-  }
 
-  private loadCollisionMap() {
-    getCollisionMap().then((imageData) => {
-      this.collisionMap = imageData;
-    });
-  }
+    const rockTexture = new THREE.TextureLoader(manager).load(rock);
+    rockTexture.minFilter = THREE.NearestFilter;
+    rockTexture.magFilter = THREE.NearestFilter;
 
-  private loadHeightMap() {
-    getHeightMap().then((imageData) => {
-      this.heightMap = imageData;
-    });
+    const standTexture = new THREE.TextureLoader(manager).load(standUrl);
+    standTexture.minFilter = THREE.NearestFilter;
+    standTexture.magFilter = THREE.NearestFilter;
+
+    const screen1Texture = new THREE.TextureLoader(manager).load(screen1);
+    screen1Texture.minFilter = THREE.NearestFilter;
+    screen1Texture.magFilter = THREE.NearestFilter;
+
+    const screen2Texture = new THREE.TextureLoader(manager).load(screen2);
+    screen2Texture.minFilter = THREE.NearestFilter;
+    screen2Texture.magFilter = THREE.NearestFilter;
+
+    const screen3Texture = new THREE.TextureLoader(manager).load(screen3);
+    screen3Texture.minFilter = THREE.NearestFilter;
+    screen3Texture.magFilter = THREE.NearestFilter;
+
+    const screen4Texture = new THREE.TextureLoader(manager).load(screen4);
+    screen4Texture.minFilter = THREE.NearestFilter;
+    screen4Texture.magFilter = THREE.NearestFilter;
+
+    const ground1Texture = new THREE.TextureLoader(manager).load(track1Url);
+    ground1Texture.minFilter = THREE.NearestFilter;
+    ground1Texture.magFilter = THREE.NearestFilter;
+
+    const ground2Texture = new THREE.TextureLoader(manager).load(track2Url);
+    ground2Texture.minFilter = THREE.NearestFilter;
+    ground2Texture.magFilter = THREE.NearestFilter;
+
+    const ground3Texture = new THREE.TextureLoader(manager).load(track3Url);
+    ground3Texture.minFilter = THREE.NearestFilter;
+    ground1Texture.magFilter = THREE.NearestFilter;
+
+    const ground4Texture = new THREE.TextureLoader(manager).load(track4Url);
+    ground4Texture.minFilter = THREE.NearestFilter;
+    ground4Texture.magFilter = THREE.NearestFilter;
+
+    const ground5Texture = new THREE.TextureLoader(manager).load(track5Url);
+    ground5Texture.minFilter = THREE.NearestFilter;
+    ground5Texture.magFilter = THREE.NearestFilter;
+
+    const ground6Texture = new THREE.TextureLoader(manager).load(track6Url);
+    ground6Texture.minFilter = THREE.NearestFilter;
+    ground6Texture.magFilter = THREE.NearestFilter;
+
+    const displacementTexture = new THREE.TextureLoader(manager).load(displacement);
+    displacementTexture.minFilter = THREE.NearestFilter;
+    displacementTexture.magFilter = THREE.NearestFilter;
+
+    const collisionTexture = new THREE.TextureLoader(manager).load(collisionMap);
+    collisionTexture.minFilter = THREE.NearestFilter;
+    collisionTexture.magFilter = THREE.NearestFilter;
+
+    const terrainTexture = new THREE.TextureLoader(manager).load(terrain);
+    terrainTexture.minFilter = THREE.NearestFilter;
+    terrainTexture.magFilter = THREE.NearestFilter;
+
+    screen1;
+    this.textures = {
+      rock: rockTexture,
+      stand: standTexture,
+      screen1: screen1Texture,
+      screen2: screen2Texture,
+      screen3: screen3Texture,
+      screen4: screen4Texture,
+      ground1: ground1Texture,
+      ground2: ground2Texture,
+      ground3: ground3Texture,
+      ground4: ground4Texture,
+      ground5: ground5Texture,
+      ground6: ground6Texture,
+      collisionMap: collisionTexture,
+      heightMap: displacementTexture,
+      terrain: terrainTexture,
+    };
   }
 
   private init() {
     this.document.body.appendChild(this.renderer.domElement);
 
-    this.environment = road(this.curve);
+    this.loadHeightMap();
+    this.loadCollisionMap();
+
+    this.environment = road(this.curve, this.textures);
+
     this.lights = new Lights(new THREE.Vector3(16, 0, -2));
 
-    this.scene.add(new Terrain());
+    this.scene.add(new Terrain(this.textures.terrain, this.textures.rock));
     this.scene.add(this.environment);
     this.scene.add(this.lights);
     this.scene.add(this.actor);
+
     this.actor.position.set(16, 0, 0);
 
     if (this.cameraMode === "orbit") {
