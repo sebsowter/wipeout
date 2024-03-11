@@ -10,29 +10,29 @@ export class Keys {
   }
 
   private onKeyDown(event: KeyboardEvent) {
-    const keyCode = event.which;
+    const keyCode = event.key;
 
-    if (keyCode == 87 || keyCode == 38) {
+    if (keyCode == "w" || keyCode == "ArrowUp") {
       this.isUpDown = true;
-    } else if (keyCode == 83 || keyCode == 40) {
+    } else if (keyCode == "s" || keyCode == "ArrowDown") {
       this.isDownDown = true;
-    } else if (keyCode == 65 || keyCode == 37) {
+    } else if (keyCode == "a" || keyCode == "ArrowLeft") {
       this.isLeftDown = true;
-    } else if (keyCode == 68 || keyCode == 39) {
+    } else if (keyCode == "d" || keyCode == "ArrowRight") {
       this.isRightDown = true;
     }
   }
 
   private onKeyUp(event: KeyboardEvent) {
-    const keyCode = event.which;
+    const keyCode = event.key;
 
-    if (keyCode == 87 || keyCode == 38) {
+    if (keyCode == "w" || keyCode == "ArrowUp") {
       this.isUpDown = false;
-    } else if (keyCode == 83 || keyCode == 40) {
+    } else if (keyCode == "s" || keyCode == "ArrowDown") {
       this.isDownDown = false;
-    } else if (keyCode == 65 || keyCode == 37) {
+    } else if (keyCode == "a" || keyCode == "ArrowLeft") {
       this.isLeftDown = false;
-    } else if (keyCode == 68 || keyCode == 39) {
+    } else if (keyCode == "d" || keyCode == "ArrowRight") {
       this.isRightDown = false;
     }
   }

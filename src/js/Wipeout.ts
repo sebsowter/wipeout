@@ -1,38 +1,17 @@
 import gsap from "gsap";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 import { getMap, getRoadCurve, road } from "./meshes";
-import { createCollisionMap, createHeightMap, getCollision, getHeight, getPixel, getTimeString } from "./utils";
+import { createCollisionMap, createHeightMap, getCollision, getHeight, getPixel } from "./utils";
 import { Actor } from "./Actor";
 import { Terrain } from "./Terrain";
 import { Keys } from "./Keys";
-import screen1 from "../assets/images/screenFront.png";
-import screen2 from "../assets/images/screen2.png";
-import screen3 from "../assets/images/screen3.png";
-import screen4 from "../assets/images/screen4.png";
-import buildingUrl from "../assets/images/building.png";
-import pillarUrl from "../assets/images/pillar.png";
-import terrain from "../assets/images/terrain.png";
-import track1Url from "../assets/images/track1.png";
-import track2Url from "../assets/images/track2.png";
-import track3Url from "../assets/images/track3.png";
-import track4Url from "../assets/images/track4.png";
-import track5Url from "../assets/images/track5.png";
-import track6Url from "../assets/images/track6.png";
-import displacement from "../assets/images/displacement.png";
-import collisionMap from "../assets/images/collision.png";
-import rock from "../assets/images/rock.png";
-import standUrl from "../assets/images/stand.png";
-import skyleft from "../assets/images/sky/skyleft.png";
-import skyright from "../assets/images/sky/skyright.png";
-import skytop from "../assets/images/sky/skytop.png";
-import skybottom from "../assets/images/sky/skybottom.png";
-import skyfront from "../assets/images/sky/skyfront.png";
-import skyback from "../assets/images/sky/skyback.png";
 import { Lights } from "./Lights";
 import { TimeElement } from "./TimeElement";
 import { TimeItemElement } from "./TimeItemElement";
+import { audio, skybox, textures } from "./assets";
 
 export const SPEED_MAX = 0.33;
 export const SPEED_BOOST_MAX = 0.5;
@@ -51,6 +30,7 @@ export type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map
 
 export class Wipeout {
   public actor: Actor;
+  public audioListener: THREE.AudioListener;
   public camera: THREE.PerspectiveCamera;
   public cameraMode: CameraMode = "camera";
   public checkpoint = false;
@@ -59,14 +39,21 @@ export class Wipeout {
   public controls: OrbitControls;
   public curve: THREE.CurvePath<THREE.Vector3>;
   public document: Document;
+  public environment: THREE.Object3D;
   public heightMap: ImageData;
   public hud: HTMLDivElement;
+  public hudData: HTMLDivElement;
+  public hudTimes: HTMLDivElement;
   public isControllable = false;
+  public isLoaded = false;
   public keys: Keys;
   public lapTime = 0;
   public lapTimeStart = 0;
   public lapTimeElements: TimeItemElement[];
   public lapTimes: number[] = [];
+  public lights: Lights;
+  public material: THREE.MeshBasicMaterial;
+  public model: THREE.Object3D;
   public renderer: THREE.WebGLRenderer;
   public repulsion = new THREE.Vector3();
   public rotationY = 0;
@@ -78,11 +65,12 @@ export class Wipeout {
   public uiBottom: HTMLDivElement;
   public uiBottom2: HTMLDivElement;
   public uiTop: HTMLDivElement;
-  public hudData: HTMLDivElement;
-  public hudTimes: HTMLDivElement;
-  public environment: THREE.Object3D;
-  public lights: Lights;
-  public textures: { [key: string]: THREE.Texture } = {};
+  public textures: {
+    [key: string]: THREE.Texture;
+  } = {};
+  public audio: {
+    [key: string]: THREE.Audio;
+  } = {};
 
   constructor(document: Document, width: number, height: number) {
     const heading1 = document.createElement("h3");
@@ -158,11 +146,10 @@ export class Wipeout {
       this.hudTimes.appendChild(element.container);
     });
 
-    this.setLapTime(this.lapTime);
     this.document = document;
     this.document.body.appendChild(this.ui);
     this.document.body.appendChild(this.hud);
-    this.actor = new Actor();
+
     this.clock = new THREE.Clock();
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(100, width / height, 0.1, 1000);
@@ -171,148 +158,87 @@ export class Wipeout {
     this.curve = getRoadCurve();
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.keys = new Keys();
+    this.audioListener = new THREE.AudioListener();
+    this.camera.add(this.audioListener);
+
     this.preload();
-  }
-
-  private loadCollisionMap() {
-    this.collisionMap = getMap(this.textures.collisionMap);
-  }
-
-  private loadHeightMap() {
-    this.heightMap = getMap(this.textures.heightMap);
   }
 
   private preload() {
     const manager = new THREE.LoadingManager();
+    manager.onLoad = () => this.init();
+
+    /*
     manager.onStart = (url, itemsLoaded, itemsTotal) => {
       console.log("Started loading file: " + url + ".\nLoaded " + itemsLoaded + " of " + itemsTotal + " files.");
     };
-
-    manager.onLoad = () => {
-      console.log("Loading complete!");
-      this.init();
-    };
-
     manager.onProgress = (url, itemsLoaded, itemsTotal) => {
       console.log("Loading file: " + url + ".\nLoaded " + itemsLoaded + " of " + itemsTotal + " files.");
     };
-
     manager.onError = (url) => {
       console.log("There was an error loading " + url);
     };
+    */
 
-    this.scene.background = new THREE.CubeTextureLoader(manager).load([
-      skyright,
-      skyleft,
-      skytop,
-      skybottom,
-      skyfront,
-      skyback,
-    ]);
+    this.textures = Object.entries(textures).reduce((object, [key, value]) => {
+      const texture = new THREE.TextureLoader(manager).load(value);
+      texture.minFilter = THREE.NearestFilter;
+      texture.magFilter = THREE.NearestFilter;
+
+      return { ...object, [key]: texture };
+    }, {});
+
+    Object.entries(audio).forEach(([key, value]) => {
+      return new THREE.AudioLoader(manager).load(value, (audioBuffer) => {
+        const audio = new THREE.Audio(this.audioListener).setBuffer(audioBuffer);
+
+        this.scene.add(audio);
+
+        this.audio[key] = audio;
+      });
+    });
+
+    this.scene.background = new THREE.CubeTextureLoader(manager).load(skybox);
     this.scene.background.minFilter = THREE.NearestFilter;
     this.scene.background.magFilter = THREE.NearestFilter;
 
-    const rockTexture = new THREE.TextureLoader(manager).load(rock);
-    rockTexture.minFilter = THREE.NearestFilter;
-    rockTexture.magFilter = THREE.NearestFilter;
+    const objLoader = new OBJLoader(manager);
+    objLoader.load("./models/model.obj", (object: THREE.Object3D) => {
+      this.model = object;
+    });
 
-    const standTexture = new THREE.TextureLoader(manager).load(standUrl);
-    standTexture.minFilter = THREE.NearestFilter;
-    standTexture.magFilter = THREE.NearestFilter;
-
-    const screen1Texture = new THREE.TextureLoader(manager).load(screen1);
-    screen1Texture.minFilter = THREE.NearestFilter;
-    screen1Texture.magFilter = THREE.NearestFilter;
-
-    const screen2Texture = new THREE.TextureLoader(manager).load(screen2);
-    screen2Texture.minFilter = THREE.NearestFilter;
-    screen2Texture.magFilter = THREE.NearestFilter;
-
-    const screen3Texture = new THREE.TextureLoader(manager).load(screen3);
-    screen3Texture.minFilter = THREE.NearestFilter;
-    screen3Texture.magFilter = THREE.NearestFilter;
-
-    const screen4Texture = new THREE.TextureLoader(manager).load(screen4);
-    screen4Texture.minFilter = THREE.NearestFilter;
-    screen4Texture.magFilter = THREE.NearestFilter;
-
-    const ground1Texture = new THREE.TextureLoader(manager).load(track1Url);
-    ground1Texture.minFilter = THREE.NearestFilter;
-    ground1Texture.magFilter = THREE.NearestFilter;
-
-    const ground2Texture = new THREE.TextureLoader(manager).load(track2Url);
-    ground2Texture.minFilter = THREE.NearestFilter;
-    ground2Texture.magFilter = THREE.NearestFilter;
-
-    const ground3Texture = new THREE.TextureLoader(manager).load(track3Url);
-    ground3Texture.minFilter = THREE.NearestFilter;
-    ground1Texture.magFilter = THREE.NearestFilter;
-
-    const ground4Texture = new THREE.TextureLoader(manager).load(track4Url);
-    ground4Texture.minFilter = THREE.NearestFilter;
-    ground4Texture.magFilter = THREE.NearestFilter;
-
-    const ground5Texture = new THREE.TextureLoader(manager).load(track5Url);
-    ground5Texture.minFilter = THREE.NearestFilter;
-    ground5Texture.magFilter = THREE.NearestFilter;
-
-    const ground6Texture = new THREE.TextureLoader(manager).load(track6Url);
-    ground6Texture.minFilter = THREE.NearestFilter;
-    ground6Texture.magFilter = THREE.NearestFilter;
-
-    const displacementTexture = new THREE.TextureLoader(manager).load(displacement);
-    displacementTexture.minFilter = THREE.NearestFilter;
-    displacementTexture.magFilter = THREE.NearestFilter;
-
-    const collisionTexture = new THREE.TextureLoader(manager).load(collisionMap);
-    collisionTexture.minFilter = THREE.NearestFilter;
-    collisionTexture.magFilter = THREE.NearestFilter;
-
-    const terrainTexture = new THREE.TextureLoader(manager).load(terrain);
-    terrainTexture.minFilter = THREE.NearestFilter;
-    terrainTexture.magFilter = THREE.NearestFilter;
-
-    screen1;
-    this.textures = {
-      rock: rockTexture,
-      stand: standTexture,
-      screen1: screen1Texture,
-      screen2: screen2Texture,
-      screen3: screen3Texture,
-      screen4: screen4Texture,
-      ground1: ground1Texture,
-      ground2: ground2Texture,
-      ground3: ground3Texture,
-      ground4: ground4Texture,
-      ground5: ground5Texture,
-      ground6: ground6Texture,
-      collisionMap: collisionTexture,
-      heightMap: displacementTexture,
-      terrain: terrainTexture,
-    };
+    const materialLoader = new THREE.MaterialLoader(manager);
+    materialLoader.load("./models/material.json", (material: THREE.MeshBasicMaterial) => {
+      this.material = material;
+      this.material.side = THREE.DoubleSide;
+    });
   }
 
   private init() {
-    this.document.body.appendChild(this.renderer.domElement);
-
-    this.loadHeightMap();
-    this.loadCollisionMap();
-
+    this.collisionMap = getMap(this.textures.collisionMap);
+    this.heightMap = getMap(this.textures.heightMap);
     this.environment = road(this.curve, this.textures);
-
-    this.lights = new Lights(new THREE.Vector3(16, 0, -2));
+    this.lights = new Lights(new THREE.Vector3(16, 0, -2), [
+      this.textures.lights1,
+      this.textures.lights2,
+      this.textures.lights3,
+    ]);
+    this.actor = new Actor(this.model, this.material, this.textures.ship, this.textures.shadow);
+    this.actor.position.set(16, 0, 0);
 
     this.scene.add(new Terrain(this.textures.terrain, this.textures.rock));
     this.scene.add(this.environment);
     this.scene.add(this.lights);
     this.scene.add(this.actor);
 
-    this.actor.position.set(16, 0, 0);
-
     if (this.cameraMode === "orbit") {
       this.camera.position.set(16, 2, 4);
       this.controls.update();
     }
+
+    this.document.body.appendChild(this.renderer.domElement);
+
+    this.isLoaded = true;
   }
 
   public resize(width: number, height: number) {
@@ -322,85 +248,99 @@ export class Wipeout {
   }
 
   public update() {
-    const time = this.clock.getElapsedTime();
-    const looptime = 20;
-    const present = (time % looptime) / looptime;
-    const future = ((time + 0.001) % looptime) / looptime;
-    const presentPosition = new THREE.Vector3();
-    const futurePosition = new THREE.Vector3();
+    if (this.isLoaded) {
+      const time = this.clock.getElapsedTime();
+      const looptime = 20;
+      const presentTime = (time % looptime) / looptime;
+      const futureTime = ((time + 0.001) % looptime) / looptime;
+      const presentPosition = new THREE.Vector3();
+      const futurePosition = new THREE.Vector3();
 
-    this.curve.getPointAt(present, presentPosition);
-    this.curve.getPointAt(future, futurePosition);
+      this.curve.getPointAt(presentTime, presentPosition);
+      this.curve.getPointAt(futureTime, futurePosition);
 
-    if (this.cameraMode === "player") {
-      if (this.isControllable) {
-        this.setLapTime(time - this.lapTimeStart);
-        this.updateStearing();
+      if (this.cameraMode === "player") {
+        if (this.isControllable) {
+          this.setLapTime(time - this.lapTimeStart);
+          this.updateStearing();
+        }
+
+        const direction3 = new THREE.Vector3();
+
+        this.actor.getWorldDirection(direction3);
+
+        const direction2 = new THREE.Vector2(direction3.x, direction3.z);
+        const angle = direction2.angle();
+
+        const forward2 = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
+        const forward3 = this.actor.position.clone().add(new THREE.Vector3(forward2.x, 0, forward2.y));
+
+        const previousY = getHeight(this.heightMap, this.actor.position, HEIGHT_MIN, HEIGHT_MAX);
+        const currentY = getHeight(this.heightMap, forward3, HEIGHT_MIN, HEIGHT_MAX);
+
+        const deltaY = previousY - currentY;
+
+        const modelQuaternion = new THREE.Quaternion()
+          .setFromEuler(this.actor.model.rotation.clone())
+          .slerp(
+            new THREE.Quaternion().setFromEuler(
+              new THREE.Euler(Math.PI + deltaY * 1, -this.rotationY * 5, Math.PI + this.rotationY * 30)
+            ),
+            0.1
+          );
+
+        const cameraQuaternion = new THREE.Quaternion();
+        cameraQuaternion
+          .setFromEuler(this.actor.cameraPosition.rotation.clone())
+          .slerp(
+            new THREE.Quaternion().setFromEuler(
+              new THREE.Euler(
+                this.actor.cameraPosition.rotation.x,
+                this.actor.cameraPosition.rotation.y,
+                Math.PI + this.rotationY * 5
+              )
+            ),
+            0.25
+          );
+
+        if (this.isControllable) {
+          this.updateThrottle();
+        }
+
+        this.updateCollision(direction3);
+        this.updateLap();
+
+        this.actor.rotateY(this.rotationY);
+        this.actor.cameraPosition.rotation.setFromQuaternion(cameraQuaternion);
+        this.actor.model.rotation.setFromQuaternion(modelQuaternion);
+        this.actor.shadow.rotation.y = -this.actor.model.rotation.y * -2;
+        this.actor.position.add(direction3.multiplyScalar(this.speed)).add(this.repulsion);
+        this.actor.position.lerp(this.actor.position.clone().setY(previousY), 0.25);
+
+        this.updateCamera();
+      } else if (this.cameraMode === "camera") {
+        this.actor.position.copy(presentPosition);
+        this.actor.lookAt(futurePosition);
+
+        this.updateCamera();
+      } else if (this.cameraMode === "orbit") {
+        this.controls.update();
       }
 
-      const direction3 = new THREE.Vector3();
+      this.audio.crowd.setVolume(
+        Math.max(0, (1 / 100) * (50 - this.actor.position.clone().distanceTo(new THREE.Vector3(24, 0, 0))) * 0.5)
+      );
 
-      this.actor.getWorldDirection(direction3);
+      /*
+      this.audio.engine.setVolume(
+        Math.max(0, (1 / 100) * (50 - this.actor.position.clone().distanceTo(new THREE.Vector3(24, 0, 0))))
+      );
+      */
 
-      const direction2 = new THREE.Vector2(direction3.x, direction3.z);
-      const angle = direction2.angle();
-
-      const forward2 = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
-      const forward3 = this.actor.position.clone().add(new THREE.Vector3(forward2.x, 0, forward2.y));
-
-      const previousY = getHeight(this.heightMap, this.actor.position, HEIGHT_MIN, HEIGHT_MAX);
-      const currentY = getHeight(this.heightMap, forward3, HEIGHT_MIN, HEIGHT_MAX);
-
-      const deltaY = previousY - currentY;
-
-      const modelQuaternion = new THREE.Quaternion()
-        .setFromEuler(this.actor.model.rotation.clone())
-        .slerp(
-          new THREE.Quaternion().setFromEuler(
-            new THREE.Euler(Math.PI + deltaY * 1, -this.rotationY * 5, Math.PI + this.rotationY * 30)
-          ),
-          0.1
-        );
-
-      const cameraQuaternion = new THREE.Quaternion();
-      cameraQuaternion
-        .setFromEuler(this.actor.cameraPosition.rotation.clone())
-        .slerp(
-          new THREE.Quaternion().setFromEuler(
-            new THREE.Euler(
-              this.actor.cameraPosition.rotation.x,
-              this.actor.cameraPosition.rotation.y,
-              Math.PI + this.rotationY * 5
-            )
-          ),
-          0.25
-        );
-
-      if (this.isControllable) {
-        this.updateThrottle();
-      }
-
-      this.updateCollision(direction3);
-      this.updateLap();
-
-      this.actor.rotateY(this.rotationY);
-      this.actor.cameraPosition.rotation.setFromQuaternion(cameraQuaternion);
-      this.actor.model.rotation.setFromQuaternion(modelQuaternion);
-      this.actor.shadow.rotation.y = -this.actor.model.rotation.y * -2;
-      this.actor.position.add(direction3.multiplyScalar(this.speed)).add(this.repulsion);
-      this.actor.position.lerp(this.actor.position.clone().setY(previousY), 0.25);
-
-      this.updateCamera();
-    } else if (this.cameraMode === "camera") {
-      this.actor.position.copy(presentPosition);
-      this.actor.lookAt(futurePosition);
-
-      this.updateCamera();
-    } else if (this.cameraMode === "orbit") {
-      this.controls.update();
+      this.audio.engine.setDetune(-100 + (this.speed / SPEED_MAX) * 1000);
+      this.audio.engine.setVolume(0.4 + (this.speed / SPEED_MAX) * 0.3);
+      this.renderer.render(this.scene, this.camera);
     }
-
-    this.renderer.render(this.scene, this.camera);
   }
 
   private endLap() {
@@ -450,8 +390,8 @@ export class Wipeout {
           this.checkpoint = true;
         }
       } else if (r === 255 && g === 0) {
-        this.speedPrevious = this.speed;
-        this.speed = Math.min(this.speed + SPEED_BOOST_ACCELERATION, SPEED_BOOST_MAX);
+        this.audio.boost.play();
+        this.setSpeed(Math.min(this.speed + SPEED_BOOST_ACCELERATION, SPEED_BOOST_MAX));
       }
     }
   }
@@ -460,27 +400,25 @@ export class Wipeout {
     const collision = getCollision(this.collisionMap, this.actor.position, direction);
 
     if (collision) {
-      const repulsion = new THREE.Vector3();
-      const repulsionAmount = Math.max(this.speed, 0.01);
       const [left, right] = collision;
+      const repulsion = new THREE.Vector3();
+      const value = Math.max(this.speed, 0.01);
 
       if (right > left) {
-        repulsion.x += repulsionAmount;
+        repulsion.x += value;
 
-        this.speedPrevious = this.speed;
-        this.speed *= 0.5;
+        this.setSpeed(this.speed * 0.25);
       } else if (right < left) {
-        repulsion.x += -repulsionAmount;
+        repulsion.x += -value;
 
-        this.speedPrevious = this.speed;
-        this.speed *= 0.5;
+        this.setSpeed(this.speed * 0.25);
       } else {
-        repulsion.z += -repulsionAmount;
+        repulsion.z += -value;
 
-        this.speedPrevious = this.speed;
-        this.speed *= 0.25;
+        this.setSpeed(this.speed * 0.25);
       }
 
+      this.audio.ramShip.play();
       this.repulsion.copy(repulsion.applyEuler(this.actor.rotation));
     } else {
       this.repulsion.lerp(new THREE.Vector3(), 0.1);
@@ -489,14 +427,12 @@ export class Wipeout {
 
   private updateThrottle() {
     if (this.keys.isUpDown) {
-      this.speedPrevious = this.speed;
-      this.speed = Math.min(this.speed + SPEED_ACCELERATION, SPEED_MAX);
+      //this.audio.engine.play();
+      this.setSpeed(Math.min(this.speed + SPEED_ACCELERATION, SPEED_MAX));
     } else if (this.keys.isDownDown) {
-      this.speedPrevious = this.speed;
-      this.speed = Math.max(this.speed - SPEED_ACCELERATION, -SPEED_MAX / 2);
+      this.setSpeed(Math.max(this.speed - SPEED_ACCELERATION, -SPEED_MAX / 2));
     } else {
-      this.speedPrevious = this.speed;
-      this.speed = Math.max(this.speed - SPEED_DECELERATION, 0);
+      this.setSpeed(Math.max(this.speed - SPEED_DECELERATION, 0));
     }
   }
 
@@ -518,11 +454,28 @@ export class Wipeout {
     }
   }
 
+  public setSpeed(value: number) {
+    this.speedPrevious = this.speed;
+    this.speed = value;
+  }
+
   public setCameraMode(value: CameraMode) {
     if (value === "player" && this.cameraMode !== "player") {
       this.reset();
       this.cameraMode = value;
       this.isControllable = false;
+
+      this.audio.music.setVolume(0.3);
+      this.audio.ready.setVolume(0.5);
+      this.audio.go.setVolume(0.5);
+      this.audio.ramShip.setVolume(0.75);
+      this.audio.boost.setVolume(0.75);
+      this.audio.music.setLoop(true);
+      this.audio.crowd.setLoop(true);
+      this.audio.engine.setLoop(true);
+      this.audio.music.play();
+      this.audio.crowd.play();
+      this.audio.engine.play();
 
       gsap
         .timeline({
@@ -537,6 +490,10 @@ export class Wipeout {
 
     if (value === "camera" && this.cameraMode !== "camera") {
       this.isControllable = false;
+
+      this.audio.crowd.stop();
+      this.audio.music.stop();
+      this.audio.engine.stop();
 
       gsap
         .timeline({
@@ -597,6 +554,7 @@ export class Wipeout {
         x: 1000,
         duration: 1.5,
         onComplete: () => {
+          this.audio.ready.play();
           this.lights.setState(1);
         },
       })
@@ -604,6 +562,7 @@ export class Wipeout {
         x: 2000,
         duration: 1.5,
         onComplete: () => {
+          this.audio.go.play();
           this.lights.setState(2);
         },
       });

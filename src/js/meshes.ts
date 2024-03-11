@@ -39,7 +39,7 @@ export const building = (position: THREE.Vector3, texture: THREE.Texture) => {
     //map: texture,
     //side: THREE.DoubleSide,
   });
-  //material.map.encoding = THREE.sRGBEncoding;
+  //material.map.colorSpace = THREE.SRGBColorSpace;
 
   const geometry2 = new THREE.PlaneGeometry(32, 2);
   const geometry3 = new THREE.PlaneGeometry(32, 6);
@@ -65,6 +65,7 @@ export const building = (position: THREE.Vector3, texture: THREE.Texture) => {
 
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 
   const mesh = new THREE.Mesh(geometry, [
     materialBlack,
@@ -117,7 +118,7 @@ export const cylinder = (position: THREE.Vector3, texture: THREE.Texture) => {
   return mesh;
 };
 
-export const overhead = (position: THREE.Vector3, texture: THREE.Texture) => {
+export const overhead = (position: THREE.Vector3, texture: THREE.Texture, pTexture: THREE.Texture) => {
   const object3d = new THREE.Object3D();
 
   const material = new THREE.MeshBasicMaterial({
@@ -125,16 +126,16 @@ export const overhead = (position: THREE.Vector3, texture: THREE.Texture) => {
     map: texture,
     side: THREE.DoubleSide,
   });
-  material.map.encoding = THREE.sRGBEncoding;
+  material.map.colorSpace = THREE.SRGBColorSpace;
 
   const geometry = new THREE.PlaneGeometry(10, 4, 1, 1);
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(position.x, position.y + 4, position.z);
 
-  object3d.add(pillar(new THREE.Vector3(position.x + 5.5, position.y, position.z)));
-  object3d.add(pillar(new THREE.Vector3(position.x - 5.5, position.y, position.z)));
-  object3d.add(pillar(new THREE.Vector3(position.x, position.y + 6.5, position.z)).rotateZ(Math.PI / 2));
+  object3d.add(pillar(new THREE.Vector3(position.x + 5.5, position.y, position.z), pTexture));
+  object3d.add(pillar(new THREE.Vector3(position.x - 5.5, position.y, position.z), pTexture));
+  object3d.add(pillar(new THREE.Vector3(position.x, position.y + 6.5, position.z), pTexture).rotateZ(Math.PI / 2));
   object3d.add(mesh);
 
   return object3d;
@@ -201,6 +202,7 @@ export const roadSegmentCorner = () => {
   geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 
   return geometry;
 };
@@ -266,6 +268,7 @@ export const roadSegmentTunnel = () => {
   geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 
   return geometry;
 };
@@ -331,6 +334,7 @@ export const roadSegmentDefault = (length = 8) => {
   geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 
   return geometry;
 };
@@ -340,7 +344,7 @@ export const getTerrain = (imageData: ImageData, texture: THREE.Texture) => {
     color: 0x999999,
     map: texture,
   });
-  material.map.encoding = THREE.sRGBEncoding;
+  material.map.colorSpace = THREE.SRGBColorSpace;
 
   const geometry = new THREE.PlaneGeometry(
     imageData.width / 8,
@@ -372,6 +376,7 @@ export const getTerrain = (imageData: ImageData, texture: THREE.Texture) => {
 
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 
   return mesh;
 };
@@ -549,9 +554,9 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>, textures: { [key: s
   object3D.add(building(new THREE.Vector3(4, 4, -4), textures.stand));
   object3D.add(building(new THREE.Vector3(28, 4, -4), textures.stand).rotateY(Math.PI));
   object3D.add(building(new THREE.Vector3(28, 4, 32), textures.stand).rotateY(Math.PI));
-  object3D.add(overhead(new THREE.Vector3(16, 0, -32), textures.screen4));
-  object3D.add(overhead(new THREE.Vector3(32, 2, -72), textures.screen2));
-  object3D.add(overhead(new THREE.Vector3(0, 5, -48), textures.screen1));
+  object3D.add(overhead(new THREE.Vector3(16, 0, -32), textures.screen4, textures.pillar));
+  object3D.add(overhead(new THREE.Vector3(32, 2, -72), textures.screen2, textures.pillar));
+  object3D.add(overhead(new THREE.Vector3(0, 5, -48), textures.screen1, textures.pillar));
   //object3D.add(overhead(new THREE.Vector3(-24, 8, 48), screen3));
   //object3D.add(overhead(new THREE.Vector3(32, 4, 72)).rotateY(0.2));
   //object3D.add(cylinder(new THREE.Vector3(8, 2, -88)));
@@ -586,12 +591,12 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>, textures: { [key: s
     transparent: true,
     map: textures.ground6,
   });
-  material1.map.encoding = THREE.sRGBEncoding;
-  material2.map.encoding = THREE.sRGBEncoding;
-  material3.map.encoding = THREE.sRGBEncoding;
-  material4.map.encoding = THREE.sRGBEncoding;
-  material5.map.encoding = THREE.sRGBEncoding;
-  material6.map.encoding = THREE.sRGBEncoding;
+  material1.map.colorSpace = THREE.SRGBColorSpace;
+  material2.map.colorSpace = THREE.SRGBColorSpace;
+  material3.map.colorSpace = THREE.SRGBColorSpace;
+  material4.map.colorSpace = THREE.SRGBColorSpace;
+  material5.map.colorSpace = THREE.SRGBColorSpace;
+  material6.map.colorSpace = THREE.SRGBColorSpace;
 
   const start = 74;
   const step = 4;
