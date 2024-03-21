@@ -26,6 +26,7 @@ import skyback from "../assets/images/sky/skyback.png";
 import lights1 from "../assets/images/lights1.png";
 import lights2 from "../assets/images/lights2.png";
 import lights3 from "../assets/images/lights3.png";
+import flames from "../assets/images/flames.png";
 
 import crowd from "../assets/audio/Crowd.wav";
 import engine from "../assets/audio/Engine.wav";
@@ -47,6 +48,7 @@ export const audio = {
 
 export const textures = {
   collisionMap: collisionMap,
+  flames: flames,
   ground1: track1Url,
   ground2: track2Url,
   ground3: track3Url,

@@ -223,7 +223,7 @@ export class Wipeout {
       this.textures.lights2,
       this.textures.lights3,
     ]);
-    this.actor = new Actor(this.model, this.material, this.textures.ship, this.textures.shadow);
+    this.actor = new Actor(this.model, this.material, this.textures.ship, this.textures.shadow, this.textures.flames);
     this.actor.position.set(16, 0, 0);
 
     this.scene.add(new Terrain(this.textures.terrain, this.textures.rock));
