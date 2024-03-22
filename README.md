@@ -4,12 +4,6 @@
 
 Welcome, this is an experimental WIP WebGL project. The intention is to create a raceable track in the style of the PS1 game Wipeout. The code is quite vanilla at the moment. But in order to accomodate a richer UI the intention is to refactor the project to use `react-three-fiber`.
 
-## Demo
-
-[Play the demo on GitHub](https://sebsowter.github.io/wipeout/)
-
-[Play the demo on itch.io](https://calabi.itch.io/antigravity?secret=MqnRPz7h3nEsAqRaEp9YNyXhfXo)
-
 ## Tasks
 
 ```bash
@@ -32,3 +26,9 @@ npm vite build
 - Add settings UI to control sound
 - Environmental model and texture improvements
 - Sound engineering improvements
+
+## Demo
+
+[View the demo on GitHub](https://sebsowter.github.io/wipeout/)
+
+[Or play on itch.io](https://calabi.itch.io/antigravity?secret=MqnRPz7h3nEsAqRaEp9YNyXhfXo)
