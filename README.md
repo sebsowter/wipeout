@@ -7,7 +7,8 @@ Welcome, this is an experimental WIP WebGL project. The intention is to create a
 ## Demo
 
 [Play the demo on GitHub](https://sebsowter.github.io/wipeout/)
-[Play the demo on GitHub](https://sebsowter.github.io/wipeout/)
+
+[Play the demo on itch.io](https://calabi.itch.io/antigravity?secret=MqnRPz7h3nEsAqRaEp9YNyXhfXo)
 
 ## Tasks
 
