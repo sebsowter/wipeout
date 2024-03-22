@@ -2,7 +2,7 @@
 
 # Wipeout in WebGL
 
-Welcome, this is an experimental WIP WebGL project. The intention is to create a raceable track in the style of the PS1 game Wipeout. The code is quite vanilla at the moment. But in order to accomodate a richer UI the intention is to refactor the project to use `react-three-fiber`.
+Welcome, this is an experimental WIP WebGL project. The intention is to create a raceable track in the style of the PS1 game Wipeout. The code is quite vanilla at the moment. In order to accomodate a richer UI, the project is about it be refactored to use `react-three-fiber`.
 
 ## Tasks
 
@@ -26,7 +26,7 @@ npm vite build
 - Add settings UI to control sound
 - Environmental model and texture improvements
 - Sound engineering improvements
-- Full screen button for web
+- Fullscreen button for web
 - Mobile controls
 
 ## Demo
