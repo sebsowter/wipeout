@@ -196,3 +196,14 @@ export function getRoadColors() {
 
   return colors;
 }
+
+export const getMap = (texture: THREE.Texture) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = texture.image.width;
+  canvas.height = texture.image.height;
+
+  const context = canvas.getContext("2d");
+  context.drawImage(texture.image, 0, 0);
+
+  return context.getImageData(0, 0, canvas.width, canvas.height);
+};

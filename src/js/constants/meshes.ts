@@ -16,11 +16,7 @@ export const stand = (position: THREE.Vector3, texture: THREE.Texture) => {
     color: 0x000000,
   });
 
-  const materialBlack = new THREE.MeshBasicMaterial({
-    color: 0x000000,
-  });
-
-  const material = new THREE.MeshBasicMaterial({
+  const material1 = new THREE.MeshBasicMaterial({
     color: 0x333333,
   });
 
@@ -46,14 +42,7 @@ export const stand = (position: THREE.Vector3, texture: THREE.Texture) => {
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
 
-  const mesh1 = new THREE.Mesh(geometry, [
-    materialBlack,
-    materialBlack,
-    material,
-    materialBlack,
-    materialBlack,
-    materialBlack,
-  ]);
+  const mesh1 = new THREE.Mesh(geometry, [material3, material3, material1, material3, material3, material3]);
 
   const mesh2 = new THREE.Mesh(geometry2, material2);
   mesh2.position.set(-6, 7, 0);
@@ -442,94 +431,7 @@ export const getRoadCurve = () => {
   return curvePath;
 };
 
-export const getRoadCurve1 = () => {
-  const curvePath = new THREE.CurvePath<THREE.Vector3>();
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 0), new THREE.Vector3(16, 0, -32)));
-  curvePath.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(16, 0, -32),
-      new THREE.Vector3(16, 0, -48),
-      new THREE.Vector3(32, 0, -40),
-      new THREE.Vector3(32, 0, -56)
-    )
-  );
-  curvePath.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(32, 0, -56),
-      new THREE.Vector3(32, 0, -72),
-      new THREE.Vector3(32, 2, -72),
-      new THREE.Vector3(32, 2, -88)
-    )
-  );
-  curvePath.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(32, 2, -88),
-      new THREE.Vector3(32, 2, -100),
-      new THREE.Vector3(16, 2, -100),
-      new THREE.Vector3(16, 2, -88)
-    )
-  );
-
-  return curvePath;
-};
-
-export const getRoadCurve2 = () => {
-  const curvePath = new THREE.CurvePath<THREE.Vector3>();
-  curvePath.add(
-    new THREE.CatmullRomCurve3(
-      [
-        new THREE.Vector3(16, 2, -88),
-        new THREE.Vector3(16, 2, -80),
-        new THREE.Vector3(0, 3, -64),
-        new THREE.Vector3(0, 5, -48),
-        new THREE.Vector3(-32, 4, -16),
-        new THREE.Vector3(-24, 6, 16),
-        new THREE.Vector3(-24, 8, 48),
-        new THREE.Vector3(-24, 8, 56),
-      ],
-      false
-    )
-  );
-  curvePath.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(-24, 8, 56),
-      new THREE.Vector3(-24, 8, 64),
-      new THREE.Vector3(-16, 7, 72),
-      new THREE.Vector3(-8, 7, 72)
-    )
-  );
-  curvePath.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(-8, 7, 72),
-      new THREE.Vector3(8, 7, 72),
-      new THREE.Vector3(8, 8, 96),
-      new THREE.Vector3(24, 8, 96)
-    )
-  );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(24, 8, 96), new THREE.Vector3(32, 8, 96)));
-  curvePath.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(32, 8, 96),
-      new THREE.Vector3(48, 8, 96),
-      new THREE.Vector3(48, 4, 72),
-      new THREE.Vector3(32, 4, 72)
-    )
-  );
-  curvePath.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(32, 4, 72),
-      new THREE.Vector3(8, 4, 72),
-      new THREE.Vector3(16, 0, 48),
-      new THREE.Vector3(16, 0, 32)
-    )
-  );
-  curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 32), new THREE.Vector3(16, 0, 0)));
-
-  return curvePath;
-};
-
 export const road = (spline: THREE.CurvePath<THREE.Vector3>, textures: { [key: string]: THREE.Texture }) => {
-  //spline = getRoadCurve1();
   const object3D = new THREE.Object3D();
   object3D.add(stand(new THREE.Vector3(4, 4, 32), textures.stand));
   object3D.add(stand(new THREE.Vector3(4, 4, -4), textures.stand));
@@ -538,9 +440,6 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>, textures: { [key: s
   object3D.add(overhead(new THREE.Vector3(16, 0, -32), textures.screen4, textures.pillar));
   object3D.add(overhead(new THREE.Vector3(32, 2, -72), textures.screen2, textures.pillar));
   object3D.add(overhead(new THREE.Vector3(0, 5, -48), textures.screen1, textures.pillar));
-  //object3D.add(overhead(new THREE.Vector3(-24, 8, 48), screen3));
-  //object3D.add(overhead(new THREE.Vector3(32, 4, 72)).rotateY(0.2));
-  //object3D.add(cylinder(new THREE.Vector3(8, 2, -88)));
 
   const defaultGeometry = roadSegmentDefault(4);
   const longGeometry = roadSegmentDefault(8);
@@ -586,9 +485,6 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>, textures: { [key: s
   const stepCountRounded = Math.ceil(stepCount);
   const increment = 1 / stepCount;
   const colors = getRoadColors();
-  console.log("splineLength", splineLength);
-  console.log("stepCount", stepCount);
-  console.log("stepCountRounded", stepCountRounded);
 
   [
     new InstancedFlow(stepCountRounded, 1, defaultGeometry, material1),
@@ -653,12 +549,12 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>, textures: { [key: s
     if (index === 5) {
       for (let i = 52; i < 53; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        //flow.object3D.setColorAt(i, new THREE.Color(0x00ffff));
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
 
       for (let i = 66; i < 67; i++) {
         flow.moveIndividualAlongCurve(i, ((start + i) * increment) % 1);
-        //flow.object3D.setColorAt(i, new THREE.Color(0x00ffff));
+        flow.object3D.setColorAt(i, colors[i % colors.length]);
       }
     }
 
@@ -666,15 +562,4 @@ export const road = (spline: THREE.CurvePath<THREE.Vector3>, textures: { [key: s
   });
 
   return object3D;
-};
-
-export const getMap = (texture: THREE.Texture) => {
-  const canvas = document.createElement("canvas");
-  canvas.width = texture.image.width;
-  canvas.height = texture.image.height;
-
-  const context = canvas.getContext("2d");
-  context.drawImage(texture.image, 0, 0);
-
-  return context.getImageData(0, 0, canvas.width, canvas.height);
 };

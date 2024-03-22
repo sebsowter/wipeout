@@ -3,14 +3,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
-import { getMap, getRoadCurve, road } from "./constants/meshes";
-import { getCollision, getHeight, getPixel } from "./utils/utils";
-import { Actor } from "./components/Actor";
-import { Terrain } from "./components/Terrain";
-import { Keys } from "./components/Keys";
-import { Lights } from "./components/Lights";
-import { TimeElement } from "./components/TimeElement";
-import { TimeItemElement } from "./components/TimeItemElement";
+import { getRoadCurve, road } from "./constants/meshes";
+import { getCollision, getHeight, getMap, getPixel } from "./utils/utils";
+import { Actor, Keys, Lights, Terrain, TimeElement, TimeItemElement } from "./components";
 import { audio, skybox, textures } from "./constants/assets";
 import {
   HEIGHT_MAX,
@@ -73,15 +68,15 @@ export class Wipeout {
     const heading2 = document.createElement("h3");
     heading2.innerText = "LAP RECORD";
 
-    const button = document.createElement("button");
-    button.innerText = "PLAY";
-    button.onclick = () => {
+    const playButton = document.createElement("button");
+    playButton.innerText = "PLAY";
+    playButton.onclick = () => {
       this.setCameraMode("player");
     };
 
     this.uiBottom = document.createElement("div");
     this.uiBottom.className = "ui-bottom";
-    this.uiBottom.appendChild(button);
+    this.uiBottom.appendChild(playButton);
 
     this.uiTop = document.createElement("div");
     this.uiTop.className = "ui-top";
@@ -98,15 +93,15 @@ export class Wipeout {
     this.hudTimes = document.createElement("div");
     this.hudTimes.className = "hud-times";
 
-    const button2 = document.createElement("button");
-    button2.innerText = "QUIT";
-    button2.onclick = () => {
+    const quitButton = document.createElement("button");
+    quitButton.innerText = "QUIT";
+    quitButton.onclick = () => {
       this.setCameraMode("camera");
     };
 
     this.uiBottom2 = document.createElement("div");
     this.uiBottom2.className = "ui-bottom2";
-    this.uiBottom2.appendChild(button2);
+    this.uiBottom2.appendChild(quitButton);
 
     this.timeElement = new TimeElement();
 
@@ -116,14 +111,14 @@ export class Wipeout {
     this.hudData.appendChild(this.hudTimes);
     this.hudTimes.appendChild(heading2);
 
-    gsap.set(this.hud, { x: "-100%" });
-    gsap.set(this.hudTimes, { x: "-50rem" });
-
     this.hud.appendChild(this.hudData);
     this.hud.appendChild(this.uiBottom2);
 
     this.ui.appendChild(this.uiTop);
     this.ui.appendChild(this.uiBottom);
+
+    gsap.set(this.hud, { x: "-100%" });
+    gsap.set(this.hudTimes, { x: "-50rem" });
 
     this.lapTimeElements = Array.from(Array(3)).map((_, index) => {
       const time = this.lapTimes[index];
@@ -248,18 +243,16 @@ export class Wipeout {
         }
 
         const direction3 = new THREE.Vector3();
-
-        this.actor.getWorldDirection(direction3);
-
         const direction2 = new THREE.Vector2(direction3.x, direction3.z);
         const angle = direction2.angle();
 
-        const forward2 = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
-        const forward3 = this.actor.position.clone().add(new THREE.Vector3(forward2.x, 0, forward2.y));
+        this.actor.getWorldDirection(direction3);
+
+        const positionDelta = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), angle);
+        const positionFront = this.actor.position.clone().add(new THREE.Vector3(positionDelta.x, 0, positionDelta.y));
 
         const previousY = getHeight(this.heightMap, this.actor.position, HEIGHT_MIN, HEIGHT_MAX);
-        const currentY = getHeight(this.heightMap, forward3, HEIGHT_MIN, HEIGHT_MAX);
-
+        const currentY = getHeight(this.heightMap, positionFront, HEIGHT_MIN, HEIGHT_MAX);
         const deltaY = previousY - currentY;
 
         const modelQuaternion = new THREE.Quaternion()
@@ -309,12 +302,17 @@ export class Wipeout {
         this.controls.update();
       }
 
-      this.audio.crowd.setVolume(
-        Math.max(0, (1 / 100) * (50 - this.actor.position.clone().distanceTo(new THREE.Vector3(24, 0, 0))) * 0.5)
-      );
+      if (this.audio.crowd) {
+        this.audio.crowd.setVolume(
+          Math.max(0, (1 / 100) * (50 - this.actor.position.clone().distanceTo(new THREE.Vector3(24, 0, 0))) * 0.5)
+        );
+      }
 
-      this.audio.engine.setDetune(-100 + (this.speed / SPEED_MAX) * 1000);
-      this.audio.engine.setVolume(0.4 + (this.speed / SPEED_MAX) * 0.3);
+      if (this.audio.engine) {
+        this.audio.engine.setDetune(-100 + (this.speed / SPEED_MAX) * 1000);
+        this.audio.engine.setVolume(0.4 + (this.speed / SPEED_MAX) * 0.3);
+      }
+
       this.renderer.render(this.scene, this.camera);
     }
   }
