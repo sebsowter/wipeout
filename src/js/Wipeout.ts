@@ -3,10 +3,6 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
-import { getRoadCurve, road } from "./constants/meshes";
-import { getCollision, getHeight, getMap, getPixel } from "./utils/utils";
-import { Actor, Keys, LapTime, Lights, Terrain, Time } from "./components";
-import { audio, skybox, textures } from "./constants/assets";
 import {
   HEIGHT_MAX,
   HEIGHT_MIN,
@@ -18,6 +14,10 @@ import {
   TURN_DECELERATION,
   TURN_MAX,
 } from "./constants/physics";
+import { getRoadCurve, road } from "./constants/meshes";
+import { audio, skybox, textures } from "./constants/assets";
+import { Actor, Keys, LapTime, Lights, Terrain, Time } from "./components";
+import { getCollision, getHeight, getMap, getPixel } from "./utils/utils";
 
 export type CameraMode = "camera" | "orbit" | "player";
 
