@@ -26,6 +26,8 @@ npm vite build
 - Add settings UI to control sound
 - Environmental model and texture improvements
 - Sound engineering improvements
+- Full screen button for web
+- Mobile controls
 
 ## Demo
 
