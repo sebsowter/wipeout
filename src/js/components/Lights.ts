@@ -19,12 +19,11 @@ export class Lights extends THREE.Group {
     });
     this._material.map.colorSpace = THREE.SRGBColorSpace;
 
-    const geometry = new THREE.PlaneGeometry(1.5, 0.5);
-    const mesh = new THREE.Mesh(geometry, this._material);
-    mesh.position.set(0, 2, 0);
+    const geometry0 = new THREE.PlaneGeometry(1.5, 0.5);
+    const mesh0 = new THREE.Mesh(geometry0, this._material);
+    mesh0.position.set(0, 2, 0);
 
     const material = new THREE.MeshBasicMaterial({ color: 0x666666 });
-
     const geometry1 = new THREE.BoxGeometry(3.1, 0.1, 0.1);
     const mesh1 = new THREE.Mesh(geometry1, material);
     mesh1.position.set(1.5, 2.3, 0);
@@ -35,7 +34,7 @@ export class Lights extends THREE.Group {
 
     this.add(mesh1);
     this.add(mesh2);
-    this.add(mesh);
+    this.add(mesh0);
   }
 
   public setState(value: number) {

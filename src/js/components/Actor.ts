@@ -24,13 +24,13 @@ export class Actor extends THREE.Group {
     this._main.position.setY(0.4);
     this._main.position.setZ(0);
 
-    const material = new THREE.MeshBasicMaterial({
+    const shadowMaterial = new THREE.MeshBasicMaterial({
       transparent: true,
       map: shadow,
       side: THREE.DoubleSide,
       opacity: 0.4,
     });
-    material.depthTest = false;
+    shadowMaterial.depthTest = false;
 
     const material3 = new THREE.MeshBasicMaterial({
       transparent: true,
@@ -56,7 +56,7 @@ export class Actor extends THREE.Group {
     this._flames.scale.set(0.5, 1, 1);
     this._flames.renderOrder = 999;
 
-    this._shadow = new THREE.Mesh(plane, material);
+    this._shadow = new THREE.Mesh(plane, shadowMaterial);
     this._shadow.position.set(0, 0, 0);
     this._shadow.renderOrder = 998;
 

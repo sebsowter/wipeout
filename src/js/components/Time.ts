@@ -1,6 +1,6 @@
 import { formatTwoDigits } from "../utils/utils";
 
-export class TimeElement {
+export class Time {
   protected _container: HTMLDivElement;
 
   private _large: HTMLSpanElement;

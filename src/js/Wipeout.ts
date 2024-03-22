@@ -5,7 +5,7 @@ import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 import { getRoadCurve, road } from "./constants/meshes";
 import { getCollision, getHeight, getMap, getPixel } from "./utils/utils";
-import { Actor, Keys, Lights, Terrain, TimeElement, TimeItemElement } from "./components";
+import { Actor, Keys, LapTime, Lights, Terrain, Time } from "./components";
 import { audio, skybox, textures } from "./constants/assets";
 import {
   HEIGHT_MAX,
@@ -43,7 +43,7 @@ export class Wipeout {
   public keys: Keys;
   public lapTime = 0;
   public lapTimeStart = 0;
-  public lapTimeElements: TimeItemElement[];
+  public lapTimeElements: LapTime[];
   public lapTimes: number[] = [];
   public lights: Lights;
   public material: THREE.MeshBasicMaterial;
@@ -55,9 +55,9 @@ export class Wipeout {
   public speed = 0;
   public speedPrevious = 0;
   public textures: { [key: string]: THREE.Texture } = {};
-  public timeElement: TimeElement;
+  public timeElement: Time;
   public ui: HTMLDivElement;
-  public uiBottom: HTMLDivElement;
+  public uiBottom1: HTMLDivElement;
   public uiBottom2: HTMLDivElement;
   public uiTop: HTMLDivElement;
 
@@ -74,9 +74,9 @@ export class Wipeout {
       this.setCameraMode("player");
     };
 
-    this.uiBottom = document.createElement("div");
-    this.uiBottom.className = "ui-bottom";
-    this.uiBottom.appendChild(playButton);
+    this.uiBottom1 = document.createElement("div");
+    this.uiBottom1.className = "ui-bottom";
+    this.uiBottom1.appendChild(playButton);
 
     this.uiTop = document.createElement("div");
     this.uiTop.className = "ui-top";
@@ -103,7 +103,7 @@ export class Wipeout {
     this.uiBottom2.className = "ui-bottom2";
     this.uiBottom2.appendChild(quitButton);
 
-    this.timeElement = new TimeElement();
+    this.timeElement = new Time();
 
     this.hudData.appendChild(heading1);
     this.hudData.appendChild(this.timeElement.container);
@@ -115,14 +115,14 @@ export class Wipeout {
     this.hud.appendChild(this.uiBottom2);
 
     this.ui.appendChild(this.uiTop);
-    this.ui.appendChild(this.uiBottom);
+    this.ui.appendChild(this.uiBottom1);
 
     gsap.set(this.hud, { x: "-100%" });
     gsap.set(this.hudTimes, { x: "-50rem" });
 
     this.lapTimeElements = Array.from(Array(3)).map((_, index) => {
       const time = this.lapTimes[index];
-      const element = new TimeItemElement(index);
+      const element = new LapTime(index);
 
       if (time) {
         element.setValue(time);
@@ -456,7 +456,7 @@ export class Wipeout {
             this.countdown();
           },
         })
-        .to(this.uiBottom, { y: "100%", duration: 1 })
+        .to(this.uiBottom1, { y: "100%", duration: 1 })
         .to(this.uiTop, { y: "-100%", duration: 1 }, 0)
         .to(this.hud, { x: 0, duration: 0.5, ease: "Quint.easeOut" });
     }
@@ -476,7 +476,7 @@ export class Wipeout {
           },
         })
         .to(this.hud, { x: "-100%", duration: 0.5, ease: "Sine.easeIn" })
-        .to(this.uiBottom, { y: "0", duration: 1 })
+        .to(this.uiBottom1, { y: "0", duration: 1 })
         .to(this.uiTop, { y: "0", duration: 1 }, 0.5);
     }
   }

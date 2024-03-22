@@ -1,6 +1,6 @@
-import { TimeElement } from "./TimeElement";
+import { Time } from "./Time";
 
-export class TimeItemElement extends TimeElement {
+export class LapTime extends Time {
   private _span: HTMLSpanElement;
   private _index: number;
 
