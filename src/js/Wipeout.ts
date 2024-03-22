@@ -3,33 +3,32 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
-import { getMap, getRoadCurve, road } from "./meshes";
-import { createCollisionMap, createHeightMap, getCollision, getHeight, getPixel } from "./utils";
-import { Actor } from "./Actor";
-import { Terrain } from "./Terrain";
-import { Keys } from "./Keys";
-import { Lights } from "./Lights";
-import { TimeElement } from "./TimeElement";
-import { TimeItemElement } from "./TimeItemElement";
-import { audio, skybox, textures } from "./assets";
+import { getMap, getRoadCurve, road } from "./constants/meshes";
+import { getCollision, getHeight, getPixel } from "./utils/utils";
+import { Actor } from "./components/Actor";
+import { Terrain } from "./components/Terrain";
+import { Keys } from "./components/Keys";
+import { Lights } from "./components/Lights";
+import { TimeElement } from "./components/TimeElement";
+import { TimeItemElement } from "./components/TimeItemElement";
+import { audio, skybox, textures } from "./constants/assets";
+import {
+  HEIGHT_MAX,
+  HEIGHT_MIN,
+  SPEED_ACCELERATION,
+  SPEED_BOOST_MAX,
+  SPEED_DECELERATION,
+  SPEED_MAX,
+  TURN_ACCELERATION,
+  TURN_DECELERATION,
+  TURN_MAX,
+} from "./constants/physics";
 
-export const SPEED_MAX = 0.33;
-export const SPEED_BOOST_MAX = 0.5;
-export const SPEED_BOOST_ACCELERATION = SPEED_BOOST_MAX - SPEED_MAX;
-export const SPEED_ACCELERATION = 0.001;
-export const SPEED_DECELERATION = 0.002;
-
-export const TURN_MAX = 0.04;
-export const TURN_ACCELERATION = 0.002;
-export const TURN_DECELERATION = 0.005;
-
-export const HEIGHT_MIN = 0;
-export const HEIGHT_MAX = 8.5;
-
-export type CameraMode = "camera" | "orbit" | "player" | "bird" | "collision_map" | "height_map" | "map";
+export type CameraMode = "camera" | "orbit" | "player";
 
 export class Wipeout {
   public actor: Actor;
+  public audio: { [key: string]: THREE.Audio } = {};
   public audioListener: THREE.AudioListener;
   public camera: THREE.PerspectiveCamera;
   public cameraMode: CameraMode = "camera";
@@ -60,17 +59,12 @@ export class Wipeout {
   public scene: THREE.Scene;
   public speed = 0;
   public speedPrevious = 0;
+  public textures: { [key: string]: THREE.Texture } = {};
   public timeElement: TimeElement;
   public ui: HTMLDivElement;
   public uiBottom: HTMLDivElement;
   public uiBottom2: HTMLDivElement;
   public uiTop: HTMLDivElement;
-  public textures: {
-    [key: string]: THREE.Texture;
-  } = {};
-  public audio: {
-    [key: string]: THREE.Audio;
-  } = {};
 
   constructor(document: Document, width: number, height: number) {
     const heading1 = document.createElement("h3");
@@ -114,7 +108,7 @@ export class Wipeout {
     this.uiBottom2.className = "ui-bottom2";
     this.uiBottom2.appendChild(button2);
 
-    this.timeElement = new TimeElement(0);
+    this.timeElement = new TimeElement();
 
     this.hudData.appendChild(heading1);
     this.hudData.appendChild(this.timeElement.container);
@@ -133,7 +127,7 @@ export class Wipeout {
 
     this.lapTimeElements = Array.from(Array(3)).map((_, index) => {
       const time = this.lapTimes[index];
-      const element = new TimeItemElement(time, index);
+      const element = new TimeItemElement(index);
 
       if (time) {
         element.setValue(time);
@@ -168,18 +162,6 @@ export class Wipeout {
     const manager = new THREE.LoadingManager();
     manager.onLoad = () => this.init();
 
-    /*
-    manager.onStart = (url, itemsLoaded, itemsTotal) => {
-      console.log("Started loading file: " + url + ".\nLoaded " + itemsLoaded + " of " + itemsTotal + " files.");
-    };
-    manager.onProgress = (url, itemsLoaded, itemsTotal) => {
-      console.log("Loading file: " + url + ".\nLoaded " + itemsLoaded + " of " + itemsTotal + " files.");
-    };
-    manager.onError = (url) => {
-      console.log("There was an error loading " + url);
-    };
-    */
-
     this.textures = Object.entries(textures).reduce((object, [key, value]) => {
       const texture = new THREE.TextureLoader(manager).load(value);
       texture.minFilter = THREE.NearestFilter;
@@ -203,12 +185,12 @@ export class Wipeout {
     this.scene.background.magFilter = THREE.NearestFilter;
 
     const objLoader = new OBJLoader(manager);
-    objLoader.load("./models/model.obj", (object: THREE.Object3D) => {
+    objLoader.load("/models/model.obj", (object: THREE.Object3D) => {
       this.model = object;
     });
 
     const materialLoader = new THREE.MaterialLoader(manager);
-    materialLoader.load("./models/material.json", (material: THREE.MeshBasicMaterial) => {
+    materialLoader.load("/models/material.json", (material: THREE.MeshBasicMaterial) => {
       this.material = material;
       this.material.side = THREE.DoubleSide;
     });
@@ -236,9 +218,9 @@ export class Wipeout {
       this.controls.update();
     }
 
-    this.document.body.appendChild(this.renderer.domElement);
-
     this.isLoaded = true;
+
+    this.document.body.appendChild(this.renderer.domElement);
   }
 
   public resize(width: number, height: number) {
@@ -331,12 +313,6 @@ export class Wipeout {
         Math.max(0, (1 / 100) * (50 - this.actor.position.clone().distanceTo(new THREE.Vector3(24, 0, 0))) * 0.5)
       );
 
-      /*
-      this.audio.engine.setVolume(
-        Math.max(0, (1 / 100) * (50 - this.actor.position.clone().distanceTo(new THREE.Vector3(24, 0, 0))))
-      );
-      */
-
       this.audio.engine.setDetune(-100 + (this.speed / SPEED_MAX) * 1000);
       this.audio.engine.setVolume(0.4 + (this.speed / SPEED_MAX) * 0.3);
       this.renderer.render(this.scene, this.camera);
@@ -391,7 +367,7 @@ export class Wipeout {
         }
       } else if (r === 255 && g === 0) {
         this.audio.boost.play();
-        this.setSpeed(Math.min(this.speed + SPEED_BOOST_ACCELERATION, SPEED_BOOST_MAX));
+        this.setSpeed(Math.min(this.speed + SPEED_ACCELERATION, SPEED_BOOST_MAX));
       }
     }
   }
@@ -427,7 +403,6 @@ export class Wipeout {
 
   private updateThrottle() {
     if (this.keys.isUpDown) {
-      //this.audio.engine.play();
       this.setSpeed(Math.min(this.speed + SPEED_ACCELERATION, SPEED_MAX));
     } else if (this.keys.isDownDown) {
       this.setSpeed(Math.max(this.speed - SPEED_ACCELERATION, -SPEED_MAX / 2));
@@ -532,8 +507,8 @@ export class Wipeout {
     this.actor.rotation.set(0, Math.PI, 0);
     this.actor.model.rotation.set(0, Math.PI, 0);
     this.actor.shadow.rotation.y = 0;
-    this.setLapTime(0);
     this.lights.setState(0);
+    this.setLapTime(0);
   }
 
   public countdown() {
