@@ -14,7 +14,7 @@ npm i
 npx vite
 
 # create production build of project
-npm vite build
+npx vite build
 ```
 
 ## TODO
