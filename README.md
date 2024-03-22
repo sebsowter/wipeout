@@ -21,6 +21,7 @@ npx vite build
 
 - Refactor to use `react-three-fiber`
 - Model terrain in Blender - currently uses a rudimentary height map to generate terrain which is limitting
+- Use .json format for vehicle model instead of .obj
 - Vehicle model and texture improvements
 - Add effects - motor light trails and lense flairs
 - Add settings UI to control sound
