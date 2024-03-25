@@ -8,6 +8,9 @@ export function Terrain() {
   const map = useLoader(THREE.TextureLoader, "./images/rock.png");
   const map2 = useLoader(THREE.TextureLoader, "./images/terrain.png");
 
+  map.minFilter = THREE.NearestFilter;
+  map.magFilter = THREE.NearestFilter;
+
   const material = new THREE.MeshBasicMaterial({
     color: 0x999999,
     map: map,
@@ -27,7 +30,7 @@ export function Terrain() {
 
     for (let i = 0; i < positionAttribute.count; i++) {
       vertex.fromBufferAttribute(positionAttribute, i);
-      //rotateX={()-Math.PI / 2}
+
       const x = Math.floor(vertex.x * 8 + imageData.width / 2);
       const y = Math.floor(vertex.y * 8 + imageData.height / 2);
       const index = Math.floor(y * imageData.width + x) * 4;

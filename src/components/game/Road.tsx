@@ -2,15 +2,9 @@ import { useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { InstancedFlow } from "three/examples/jsm/modifiers/CurveModifier.js";
 
-import { getImageDataFromTexture, getRoadColors } from "../../utils/utils";
-import { mkSimplexNoise } from "../../utils/simplex";
-import { useRef } from "react";
+import { getRoadColors } from "../../utils/utils";
 
-export interface RoadProps {
-  curve: THREE.CurvePath<THREE.Vector3>;
-}
-
-export const roadSegmentCorner = () => {
+export function roadSegmentCorner() {
   const flowsX = 16;
   const flowsY = 8;
   const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
@@ -74,9 +68,9 @@ export const roadSegmentCorner = () => {
   geometry.computeBoundingSphere();
 
   return geometry;
-};
+}
 
-export const roadSegmentTunnel = () => {
+export function roadSegmentTunnel() {
   const flowsX = 16;
   const flowsY = 8;
   const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
@@ -140,9 +134,9 @@ export const roadSegmentTunnel = () => {
   geometry.computeBoundingSphere();
 
   return geometry;
-};
+}
 
-export const roadSegmentDefault = (length = 8) => {
+export function roadSegmentDefault(length = 8) {
   const flowsX = 16;
   const flowsY = 8;
   const geometry = new THREE.PlaneGeometry(8, 4, flowsX, flowsY);
@@ -206,47 +200,70 @@ export const roadSegmentDefault = (length = 8) => {
   geometry.computeBoundingSphere();
 
   return geometry;
-};
+}
+
+export interface RoadProps {
+  curve: THREE.CurvePath<THREE.Vector3>;
+}
 
 export function Road({ curve }: RoadProps) {
+  const ground1 = useLoader(THREE.TextureLoader, "./images/track1.png");
+  const ground2 = useLoader(THREE.TextureLoader, "./images/track2.png");
+  const ground3 = useLoader(THREE.TextureLoader, "./images/track3.png");
+  const ground4 = useLoader(THREE.TextureLoader, "./images/track4.png");
+  const ground5 = useLoader(THREE.TextureLoader, "./images/track5.png");
+  const ground6 = useLoader(THREE.TextureLoader, "./images/track6.png");
+
   const defaultGeometry = roadSegmentDefault(4);
   const longGeometry = roadSegmentDefault(8);
   const cornerGeometry = roadSegmentCorner();
   const tunnelGeometry = roadSegmentTunnel();
 
+  ground1.colorSpace = THREE.SRGBColorSpace;
+  ground2.colorSpace = THREE.SRGBColorSpace;
+  ground3.colorSpace = THREE.SRGBColorSpace;
+  ground4.colorSpace = THREE.SRGBColorSpace;
+  ground5.colorSpace = THREE.SRGBColorSpace;
+  ground6.colorSpace = THREE.SRGBColorSpace;
+
+  ground1.minFilter = THREE.NearestFilter;
+  ground1.magFilter = THREE.NearestFilter;
+  ground2.minFilter = THREE.NearestFilter;
+  ground2.magFilter = THREE.NearestFilter;
+  ground3.minFilter = THREE.NearestFilter;
+  ground3.magFilter = THREE.NearestFilter;
+  ground4.minFilter = THREE.NearestFilter;
+  ground4.magFilter = THREE.NearestFilter;
+  ground5.minFilter = THREE.NearestFilter;
+  ground5.magFilter = THREE.NearestFilter;
+  ground6.minFilter = THREE.NearestFilter;
+  ground6.magFilter = THREE.NearestFilter;
+
   const material1 = new THREE.MeshBasicMaterial({
     color: 0x99bbcc,
-    // map: textures.ground1,
+    map: ground1,
   });
   const material2 = new THREE.MeshBasicMaterial({
     color: 0xcccccc,
-    //  map: textures.ground2,
+    map: ground2,
   });
   const material3 = new THREE.MeshBasicMaterial({
     color: 0xcccccc,
-    // map: textures.ground3,
+    map: ground3,
   });
   const material4 = new THREE.MeshBasicMaterial({
     color: 0xcccccc,
-    // map: textures.ground4,
+    map: ground4,
   });
   const material5 = new THREE.MeshBasicMaterial({
     color: 0xcccccc,
-    // map: textures.ground5,
+    map: ground5,
   });
   const material6 = new THREE.MeshBasicMaterial({
     color: 0x00ffff,
     transparent: true,
-    //  map: textures.ground6,
+    map: ground6,
   });
-  /*
-  material1.map.colorSpace = THREE.SRGBColorSpace;
-  material2.map.colorSpace = THREE.SRGBColorSpace;
-  material3.map.colorSpace = THREE.SRGBColorSpace;
-  material4.map.colorSpace = THREE.SRGBColorSpace;
-  material5.map.colorSpace = THREE.SRGBColorSpace;
-  material6.map.colorSpace = THREE.SRGBColorSpace;
-  */
 
   const start = 74;
   const step = 4;
@@ -255,12 +272,11 @@ export function Road({ curve }: RoadProps) {
   const stepCountRounded = Math.ceil(stepCount);
   const increment = 1 / stepCount;
   const colors = getRoadColors();
-  console.log("splineLength", splineLength);
-  console.log("stepCount", stepCount);
-  console.log("stepCountRounded", stepCountRounded);
 
-  const sccc = (element: any) => {
-    const flows = [new InstancedFlow(stepCountRounded, 1, defaultGeometry, material1), new InstancedFlow(stepCountRounded, 1, cornerGeometry, material2), new InstancedFlow(stepCountRounded, 1, longGeometry, material3), new InstancedFlow(stepCountRounded, 1, tunnelGeometry, material4), new InstancedFlow(stepCountRounded, 1, defaultGeometry, material5), new InstancedFlow(stepCountRounded, 1, defaultGeometry, material6)].map((flow, index) => {
+  const ref = (element: THREE.Group) => {
+    const flows = [new InstancedFlow(stepCountRounded, 1, defaultGeometry, material1), new InstancedFlow(stepCountRounded, 1, cornerGeometry, material2), new InstancedFlow(stepCountRounded, 1, longGeometry, material3), new InstancedFlow(stepCountRounded, 1, tunnelGeometry, material4), new InstancedFlow(stepCountRounded, 1, defaultGeometry, material5), new InstancedFlow(stepCountRounded, 1, defaultGeometry, material6)];
+
+    flows.map((flow, index) => {
       flow.updateCurve(0, curve);
 
       if (index === 0) {
@@ -333,5 +349,5 @@ export function Road({ curve }: RoadProps) {
     return;
   };
 
-  return <group ref={sccc}></group>;
+  return <group ref={ref} />;
 }

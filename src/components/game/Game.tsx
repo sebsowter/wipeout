@@ -12,12 +12,13 @@ export function Game() {
   const collisionTexture = useLoader(THREE.TextureLoader, "./images/collision.png");
   const heightTexture = useLoader(THREE.TextureLoader, "./images/displacement.png");
 
-  const curve = getRoadCurve();
   const collisionImageData = getImageDataFromTexture(collisionTexture);
   const heightImageData = getImageDataFromTexture(heightTexture);
 
   const getHit = (position: THREE.Vector3, rotation: THREE.Vector2) => getCollision(collisionImageData, position, rotation);
   const getY = (position: THREE.Vector3) => getHeight(heightImageData, position, HEIGHT_MIN, HEIGHT_MAX);
+
+  const curve = getRoadCurve();
 
   return (
     <Canvas

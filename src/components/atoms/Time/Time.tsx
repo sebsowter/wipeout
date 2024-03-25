@@ -1,4 +1,5 @@
 import { formatTwoDigits } from "../../../utils/utils";
+
 import * as Styles from "./Time.styles";
 
 export interface TimeProps {

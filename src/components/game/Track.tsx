@@ -1,4 +1,3 @@
-import { useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { Terrain } from "./Terrain";
 import { Building } from "./Building";

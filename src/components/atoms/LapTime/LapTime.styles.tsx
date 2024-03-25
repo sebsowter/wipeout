@@ -8,5 +8,5 @@ export const Index = styled.span`
   margin: 0 0 0.75rem 0;
   font-family: wipeout;
   font-size: 1.5rem;
-  color: var(--color-white);
+  color: var(--color-orange);
 `;

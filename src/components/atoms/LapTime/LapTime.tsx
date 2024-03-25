@@ -1,4 +1,5 @@
 import { Time } from "../Time";
+
 import * as Styles from "./LapTime.styles";
 
 export interface LapTimeProps {

@@ -1,23 +1,23 @@
 import { useLoader } from "@react-three/fiber";
 import { forwardRef } from "react";
 import * as THREE from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 
 export const Vehicle = forwardRef<THREE.Mesh>((_, ref) => {
-  const model = useLoader(OBJLoader, "./models/model.obj");
-  model.scale.multiplyScalar(0.06);
-
-  const material = new THREE.MeshBasicMaterial({
-    transparent: true,
-    color: 0xff0000,
-    side: THREE.DoubleSide,
-  });
-  material.depthTest = false;
+  const map = useLoader(THREE.TextureLoader, "./images/ship.png");
+  const geometry = useLoader(THREE.BufferGeometryLoader, "./models/vehicles/geometry.json");
+  const material: THREE.MeshBasicMaterial = useLoader(THREE.MaterialLoader, "./models/vehicles/material.json");
+  material.map = map;
+  material.map.colorSpace = THREE.SRGBColorSpace;
+  material.map.minFilter = THREE.NearestFilter;
+  material.map.magFilter = THREE.NearestFilter;
+  material.side = THREE.DoubleSide;
+  material.transparent = true;
 
   return (
-    <mesh ref={ref}>
-      <boxGeometry args={[0.1, 0.1, 0.1]} />
-      <primitive object={model} />
+    <mesh>
+      <mesh ref={ref} position={new THREE.Vector3(0, 0.4, 0)}>
+        <mesh geometry={geometry} material={material} rotation={new THREE.Euler(-Math.PI / 2, 0, Math.PI)} scale={0.03} />
+      </mesh>
     </mesh>
   );
 });
