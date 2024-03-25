@@ -21,7 +21,7 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
   const cameraPositionRef = useRef<THREE.Mesh>(null!);
   const cameraTargetRef = useRef<THREE.Mesh>(null!);
 
-  const { incrementSpeed, isControllable, lerpRepulsion, mode, multiplySpeed, position, reduceRotationY, reduceSpeed, repulsion, rotationY, speed, updateRepulsion, updateRotationY } = useGameStore();
+  const { incrementSpeed, isControllable, lerpRepulsion, mode, multiplySpeed, position, reduceRotationY, reduceSpeed, repulsion, rotationY, setPosition, speed, turn, updateRepulsion, updateRotationY, updateTurn } = useGameStore();
 
   const { isDownDown, isLeftDown, isRightDown, isUpDown } = useKeys();
 
@@ -39,11 +39,6 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
       case "player":
         const direction3 = groupRef.current.getWorldDirection(new THREE.Vector3());
         const direction2 = new THREE.Vector2(direction3.x, direction3.z);
-        const forward2 = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), direction2.angle());
-        const forward3 = groupRef.current.position.clone().add(new THREE.Vector3(forward2.x, 0, forward2.y));
-        const previousY = getY(groupRef.current.position);
-        const currentY = getY(forward3);
-        const deltaY = previousY - currentY;
 
         // Handle collisions.
         const collision = getHit(groupRef.current.position, direction2);
@@ -88,9 +83,9 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
           if (isLeftDown && isRightDown) {
             reduceRotationY(TURN_DECELERATION);
           } else if (isLeftDown) {
-            updateRotationY(TURN_ACCELERATION);
+            updateTurn(TURN_ACCELERATION);
           } else if (isRightDown) {
-            updateRotationY(-TURN_ACCELERATION);
+            updateTurn(-TURN_ACCELERATION);
           } else {
             reduceRotationY(TURN_DECELERATION);
           }
@@ -102,17 +97,25 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
         // this.updateCollision(direction3);
         //this.updateLap();
 
-        groupRef.current.rotateY(rotationY);
+        groupRef.current.position.copy(position);
+        groupRef.current.rotation.copy(rotationY);
+        groupRef.current.rotateY(turn);
 
         // Bank camera.
         const cameraRotation = cameraPositionRef.current.rotation.clone();
         const cameraQuaternion = new THREE.Quaternion();
-        cameraQuaternion.setFromEuler(cameraPositionRef.current.rotation.clone()).slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(cameraPositionRef.current.rotation.x, cameraPositionRef.current.rotation.y, Math.PI + rotationY * 5)), 0.25);
+        cameraQuaternion.setFromEuler(cameraPositionRef.current.rotation.clone()).slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(cameraPositionRef.current.rotation.x, cameraPositionRef.current.rotation.y, Math.PI + turn * 5)), 0.25);
 
         cameraPositionRef.current.rotation.setFromQuaternion(cameraQuaternion);
 
         // Rotate model.
-        const modelQuaternion = new THREE.Quaternion().setFromEuler(rotation.clone()).slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI + deltaY * 1, -rotationY * 5, Math.PI + rotationY * 30)), 0.1);
+        const forward2 = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), direction2.angle());
+        const forward3 = groupRef.current.position.clone().add(new THREE.Vector3(forward2.x, 0, forward2.y));
+        const previousY = getY(groupRef.current.position);
+        const currentY = getY(forward3);
+        const deltaY = previousY - currentY;
+
+        const modelQuaternion = new THREE.Quaternion().setFromEuler(rotation.clone()).slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI + deltaY * 1, -turn * 5, Math.PI + turn * 30)), 0.1);
 
         rotation.setFromQuaternion(modelQuaternion);
         //groupRef.current.shadow.rotation.y = -groupRef.current.model.rotation.y * -2;
@@ -121,9 +124,12 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
         groupRef.current.position.add(direction3.multiplyScalar(speed)).add(repulsion);
         groupRef.current.position.lerp(groupRef.current.position.clone().setY(previousY), 0.25);
 
+        setPosition(groupRef.current.position);
+        updateRotationY(groupRef.current.rotation);
+
         // Move camera.
-        state.camera.position.copy(cameraPositionRef.current.getWorldPosition(new THREE.Vector3()));
-        state.camera.quaternion.copy(cameraPositionRef.current.getWorldQuaternion(new THREE.Quaternion()));
+        cameraPositionRef.current.getWorldPosition(state.camera.position);
+        cameraPositionRef.current.getWorldQuaternion(state.camera.quaternion);
         break;
 
       case "camera":
@@ -132,8 +138,9 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
         groupRef.current.lookAt(futurePosition);
 
         // Move camera.
-        state.camera.position.copy(cameraPositionRef.current.getWorldPosition(new THREE.Vector3()));
-        state.camera.quaternion.copy(cameraPositionRef.current.getWorldQuaternion(new THREE.Quaternion()));
+        // TODO: Add some banking.
+        cameraPositionRef.current.getWorldPosition(state.camera.position);
+        cameraPositionRef.current.getWorldQuaternion(state.camera.quaternion);
         break;
 
       default:
@@ -141,22 +148,17 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
     }
   });
 
-  // Set camera direction.
+  // Set camera position to look at target.
   useLayoutEffect(() => {
     cameraPositionRef.current.lookAt(cameraTargetRef.current.position);
   }, []);
-
-  // Set actor position.
-  useEffect(() => {
-    groupRef.current.position.copy(position);
-  }, [position]);
 
   return (
     <group ref={groupRef}>
       {/* Set these to adjust camera position when viewed behind the actor. */}
       <mesh ref={cameraTargetRef} position={new THREE.Vector3(0, 0.5, -4)} />
       <mesh ref={cameraPositionRef} position={new THREE.Vector3(0, 0.6, -0.75)} />
-      <Shadow rotationY={rotation.y * -2} />
+      <Shadow rotationY={0} />
       <Vehicle ref={vehicleRef} />
     </group>
   );

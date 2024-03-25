@@ -1,12 +1,13 @@
 import { CameraHud } from "./CameraHud";
-import * as Styles from "./Hud.styles";
 import { PlayerHud } from "./PlayerHud";
 
-export const Hud: React.FC = () => {
+import * as Styles from "./Hud.styles";
+
+export function Hud() {
   return (
     <Styles.Wrapper>
-      <PlayerHud />
       <CameraHud />
+      <PlayerHud />
     </Styles.Wrapper>
   );
-};
+}

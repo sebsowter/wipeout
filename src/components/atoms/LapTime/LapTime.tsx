@@ -1,9 +1,16 @@
-import { PropsWithChildren } from "react";
-
+import { Time } from "../Time";
 import * as Styles from "./LapTime.styles";
 
-export interface LapTimeProps extends PropsWithChildren {}
+export interface LapTimeProps {
+  index: number;
+  value: number;
+}
 
-export function LapTime({ children }: LapTimeProps) {
-  return <Styles.LapTime>{children}</Styles.LapTime>;
+export function LapTime({ index, value }: LapTimeProps) {
+  return (
+    <Styles.Wrapper>
+      <Styles.Index>{index + 1}.</Styles.Index>
+      <Time value={value} />
+    </Styles.Wrapper>
+  );
 }

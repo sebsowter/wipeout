@@ -92,63 +92,18 @@ const GlobalStyle = createGlobalStyle`
   }
 
   h3 {
-    position: absolute;
-    top: 0;
-    left: 0;
     font-family: wipeout;
     font-size: 1.5rem;
     color: var(--color-orange);
-    margin: 0;
+    margin: 0 0 1rem 0;
     width: max-content;
   }
 
   p {
     font-family: wipeout;
-    color: --color-white;
+    color: var(--color-white);
     margin: 0;
     width: max-content;
-  }
-
-  .time-large {
-    position: absolute;
-    width: max-content;
-    top: 2.4rem;
-    left: 0;
-    font-family: wipeout;
-    color: --color-white;
-  }
-
-  .time-large .time-index {
-    display: inline-block;
-    font-size: 5rem;
-    width: 2.5rem;
-    color: var(--color-orange);
-  }
-
-  .time-large .time-seconds {
-    display: inline-block;
-    font-size: 5rem;
-  }
-
-  .time-large .time-milliseconds {
-    display: inline-block;
-    font-size: 3rem;
-  }
-
-  .hud-times .time-large {
-    top: 0;
-  }
-
-  .hud-times .time-large .time-index {
-    font-size: 1.5rem;
-  }
-
-  .hud-times .time-large .time-seconds {
-    font-size: 1.5rem;
-  }
-
-  .hud-times .time-large .time-milliseconds {
-    font-size: 1rem;
   }
 `;
 

@@ -89,18 +89,18 @@ export function pointToPixel(x: number, y: number, width: number, height: number
   return new THREE.Vector2(Math.floor(width / 2 + x * scale), Math.floor(height / 2 + y * scale));
 }
 
-/*
-export function componentToHex(c: number) {
-  const hex = c.toString(16);
-
-  return hex.length == 1 ? "0" + hex : hex;
-}
-
 export function formatTwoDigits(value: number) {
   return value.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false,
   });
+}
+
+/*
+export function componentToHex(c: number) {
+  const hex = c.toString(16);
+
+  return hex.length == 1 ? "0" + hex : hex;
 }
 
 export function getTimeString(time: number) {

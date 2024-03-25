@@ -26,7 +26,7 @@ export interface GameState {
   reduceRotationY: (by: number) => void;
   reduceSpeed: (by: number) => void;
   reset: () => void;
-  rotationY: number;
+  rotationY: THREE.Euler;
   setLapTime: () => void;
   setMode: (mode: CameraMode) => void;
   setPosition: (position: THREE.Vector3) => void;
@@ -34,21 +34,26 @@ export interface GameState {
   setTime: (time: number) => void;
   speed: number;
   speedPrevious: number;
+  startDelta: number;
   time: number;
+  turn: number;
   updateControllable: (isControllable: boolean) => void;
   updateRepulsion: (repulsion: THREE.Vector3) => void;
-  updateRotationY: (by: number) => void;
+  updateRotationY: (rotationY: THREE.Euler) => void;
+  updateTurn: (by: number) => void;
 }
 
 export const initialState: Partial<GameState> = {
   checkpoint: false,
   isControllable: false,
-  position: new THREE.Vector3(16, 0, 0),
+  position: new THREE.Vector3(16, 0, 1),
   repulsion: new THREE.Vector3(),
-  rotationY: 0,
+  rotationY: new THREE.Euler(0, Math.PI, 0),
   speed: 0,
   speedPrevious: 0,
+  startDelta: 0,
   time: 0,
+  turn: 0,
 };
 
 export const useGameStore = create<GameState>()(
@@ -70,7 +75,7 @@ export const useGameStore = create<GameState>()(
           repulsion: state.repulsion.clone().lerp(new THREE.Vector3(), 0.1),
         };
       }),
-    lapTimes: [],
+    lapTimes: [54564.32, 3215.56, 879846.12],
     lights: 0,
     mode: "camera",
     multiplySpeed: (by) =>
@@ -79,12 +84,12 @@ export const useGameStore = create<GameState>()(
         speedPrevious: state.speed,
         speed: state.speed * by,
       })),
-    position: new THREE.Vector3(16, 0, 0),
+    position: new THREE.Vector3(16, 0, 1),
     speedPrevious: 0,
     reduceRotationY: (by) =>
       set((state) => ({
         ...state,
-        rotationY: state.rotationY > 0 ? Math.max(state.rotationY - by, 0) : state.rotationY < 0 ? Math.min(state.rotationY + by, 0) : 0,
+        turn: state.turn > 0 ? Math.max(state.turn - by, 0) : state.turn < 0 ? Math.min(state.turn + by, 0) : 0,
       })),
     reduceSpeed: (by) =>
       set((state) => ({
@@ -100,7 +105,7 @@ export const useGameStore = create<GameState>()(
           ...initialState,
         };
       }),
-    rotationY: 0,
+    rotationY: new THREE.Euler(0, Math.PI, 0),
     setLapTime: () =>
       set((state) => ({
         ...state,
@@ -132,7 +137,9 @@ export const useGameStore = create<GameState>()(
         time,
       })),
     speed: 0,
+    startDelta: 0,
     time: 0,
+    turn: 0,
     updateControllable: (isControllable) =>
       set((state) => ({
         ...state,
@@ -143,10 +150,15 @@ export const useGameStore = create<GameState>()(
         ...state,
         repulsion,
       })),
-    updateRotationY: (by) =>
+    updateRotationY: (rotationY) =>
       set((state) => ({
         ...state,
-        rotationY: Math.min(Math.max(state.rotationY + by, -TURN_MAX), TURN_MAX),
+        rotationY,
+      })),
+    updateTurn: (by) =>
+      set((state) => ({
+        ...state,
+        turn: Math.min(Math.max(state.turn + by, -TURN_MAX), TURN_MAX),
       })),
   })
   // {

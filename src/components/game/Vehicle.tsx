@@ -4,8 +4,8 @@ import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 
 export const Vehicle = forwardRef<THREE.Mesh>((_, ref) => {
-  const model = useLoader(OBJLoader, "./models/vehicles/vehicle1.obj");
-  //model.scale.multiplyScalar(0.06);
+  const model = useLoader(OBJLoader, "./models/model.obj");
+  model.scale.multiplyScalar(0.06);
 
   const material = new THREE.MeshBasicMaterial({
     transparent: true,
@@ -17,8 +17,7 @@ export const Vehicle = forwardRef<THREE.Mesh>((_, ref) => {
   return (
     <mesh ref={ref}>
       <boxGeometry args={[0.1, 0.1, 0.1]} />
+      <primitive object={model} />
     </mesh>
   );
-
-  /*<primitive object={model} />*/
 });
