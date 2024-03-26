@@ -1,8 +1,8 @@
 import { useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 
-import { getImageDataFromTexture } from "../../utils/utils";
 import { mkSimplexNoise } from "../../utils/simplex";
+import { getImageDataFromTexture } from "../../utils/utils";
 
 export function Terrain() {
   const map = useLoader(THREE.TextureLoader, "./images/rock.png");

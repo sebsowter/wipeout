@@ -21,6 +21,8 @@ export function Actor({ curve }: ActorProps) {
   const heightTexture = useLoader(THREE.TextureLoader, "./images/displacement.png");
   const heightImageData = getImageDataFromTexture(heightTexture);
 
+  const engine = useLoader(THREE.AudioLoader, "./audio/engine.png");
+
   const groupRef = useRef<THREE.Group>(null!);
   const vehicleRef = useRef<THREE.Mesh>(null!);
   const cameraPositionRef = useRef<THREE.Mesh>(null!);
@@ -224,7 +226,7 @@ export function Actor({ curve }: ActorProps) {
   useLayoutEffect(() => {
     cameraPositionRef.current.lookAt(cameraTargetRef.current.position);
     vehicleRef.current.rotation.copy(rotation);
-  }, []);
+  }, [rotation]);
 
   return (
     <group ref={groupRef}>
