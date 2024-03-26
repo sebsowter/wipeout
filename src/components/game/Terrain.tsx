@@ -23,7 +23,12 @@ export function Terrain() {
   const imageData = getImageDataFromTexture(map2);
 
   if (imageData) {
-    const geometry = new THREE.PlaneGeometry(imageData.width / 8, imageData.height / 8, imageData.width / 8, imageData.height / 8);
+    const geometry = new THREE.PlaneGeometry(
+      imageData.width / 8,
+      imageData.height / 8,
+      imageData.width / 8,
+      imageData.height / 8
+    );
     const vertex = new THREE.Vector3();
     const positionAttribute = geometry.getAttribute("position");
     const simplex = mkSimplexNoise(() => 0);
@@ -43,9 +48,10 @@ export function Terrain() {
 
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();
-    //geometry.computeBoundingSphere();
 
-    return <mesh geometry={geometry} material={material} position={new THREE.Vector3(0, -2, 0)} rotation-x={-Math.PI / 2} />;
+    return (
+      <mesh geometry={geometry} material={material} position={new THREE.Vector3(0, -2, 0)} rotation-x={-Math.PI / 2} />
+    );
   }
 
   return null;

@@ -5,9 +5,10 @@ import { Road } from "./Road";
 
 export interface TrackProps {
   curve: THREE.CurvePath<THREE.Vector3>;
+  loadingManager?: THREE.LoadingManager;
 }
 
-export function Track({ curve }: TrackProps) {
+export function Track({ curve, loadingManager }: TrackProps) {
   return (
     <mesh>
       <Terrain />

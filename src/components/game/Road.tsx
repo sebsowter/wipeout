@@ -65,7 +65,7 @@ export function roadSegmentCorner() {
   geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
+  //geometry.computeBoundingSphere();
 
   return geometry;
 }
@@ -131,7 +131,7 @@ export function roadSegmentTunnel() {
   geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
+  //geometry.computeBoundingSphere();
 
   return geometry;
 }
@@ -197,7 +197,7 @@ export function roadSegmentDefault(length = 8) {
   geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
+  //geometry.computeBoundingSphere();
 
   return geometry;
 }
@@ -274,7 +274,14 @@ export function Road({ curve }: RoadProps) {
   const colors = getRoadColors();
 
   const ref = (element: THREE.Group) => {
-    const flows = [new InstancedFlow(stepCountRounded, 1, defaultGeometry, material1), new InstancedFlow(stepCountRounded, 1, cornerGeometry, material2), new InstancedFlow(stepCountRounded, 1, longGeometry, material3), new InstancedFlow(stepCountRounded, 1, tunnelGeometry, material4), new InstancedFlow(stepCountRounded, 1, defaultGeometry, material5), new InstancedFlow(stepCountRounded, 1, defaultGeometry, material6)];
+    const flows = [
+      new InstancedFlow(stepCountRounded, 1, defaultGeometry, material1),
+      new InstancedFlow(stepCountRounded, 1, cornerGeometry, material2),
+      new InstancedFlow(stepCountRounded, 1, longGeometry, material3),
+      new InstancedFlow(stepCountRounded, 1, tunnelGeometry, material4),
+      new InstancedFlow(stepCountRounded, 1, defaultGeometry, material5),
+      new InstancedFlow(stepCountRounded, 1, defaultGeometry, material6),
+    ];
 
     flows.map((flow, index) => {
       flow.updateCurve(0, curve);

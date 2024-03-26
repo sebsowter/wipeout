@@ -1,23 +1,14 @@
-import { Canvas, useLoader } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 
 import { Actor } from "./Actor";
 import { SkyBox } from "./Skybox";
 import { Track } from "./Track";
 
-import { HEIGHT_MAX, HEIGHT_MIN } from "../../constants/physics";
-import { getCollision, getHeight, getImageDataFromTexture, getRoadCurve } from "../../utils/utils";
+import { getRoadCurve } from "../../utils/utils";
+import { Suspense } from "react";
 
 export function Game() {
-  const collisionTexture = useLoader(THREE.TextureLoader, "./images/collision.png");
-  const heightTexture = useLoader(THREE.TextureLoader, "./images/displacement.png");
-
-  const collisionImageData = getImageDataFromTexture(collisionTexture);
-  const heightImageData = getImageDataFromTexture(heightTexture);
-
-  const getHit = (position: THREE.Vector3, rotation: THREE.Vector2) => getCollision(collisionImageData, position, rotation);
-  const getY = (position: THREE.Vector3) => getHeight(heightImageData, position, HEIGHT_MIN, HEIGHT_MAX);
-
   const curve = getRoadCurve();
 
   return (
@@ -30,9 +21,11 @@ export function Game() {
         position: new THREE.Vector3(16, 4, 0),
       }}
     >
-      <SkyBox />
-      <Track curve={curve} />
-      <Actor curve={curve} getHit={getHit} getY={getY} />
+      <Suspense fallback={null}>
+        <SkyBox />
+        <Track curve={curve} />
+        <Actor curve={curve} />
+      </Suspense>
     </Canvas>
   );
 }

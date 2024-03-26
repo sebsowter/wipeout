@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, PropsWithChildren } from "react";
+import { ButtonHTMLAttributes } from "react";
 
 import * as Styles from "./Button.styles";
 

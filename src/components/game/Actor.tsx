@@ -1,33 +1,66 @@
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useLoader } from "@react-three/fiber";
 import { useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
+
+import { useGameStore } from "../../App";
+import { HEIGHT_MAX, HEIGHT_MIN, SPEED_ACCELERATION, TURN_ACCELERATION, TURN_DECELERATION } from "../../constants";
+import { useKeys } from "../../hooks";
+import { getCollision, getHeight, getImageDataFromTexture, getPixel } from "../../utils/utils";
 
 import { Shadow } from "./Shadow";
 import { Vehicle } from "./Vehicle";
 
-import { useGameStore } from "../../App";
-import { useKeys } from "../../hooks";
-import { SPEED_ACCELERATION, TURN_ACCELERATION, TURN_DECELERATION } from "../../constants";
-
 export interface ActorProps {
   curve: THREE.CurvePath<THREE.Vector3>;
-  getHit: (position: THREE.Vector3, direction: THREE.Vector2) => [number, number] | undefined;
-  getY: (position: THREE.Vector3) => number;
 }
 
-export function Actor({ curve, getHit, getY }: ActorProps) {
+export function Actor({ curve }: ActorProps) {
+  const collisionTexture = useLoader(THREE.TextureLoader, "./images/collision.png");
+  const collisionImageData = getImageDataFromTexture(collisionTexture);
+
+  const heightTexture = useLoader(THREE.TextureLoader, "./images/displacement.png");
+  const heightImageData = getImageDataFromTexture(heightTexture);
+
   const groupRef = useRef<THREE.Group>(null!);
   const vehicleRef = useRef<THREE.Mesh>(null!);
   const cameraPositionRef = useRef<THREE.Mesh>(null!);
   const cameraTargetRef = useRef<THREE.Mesh>(null!);
 
-  const { incrementSpeed, isControllable, lerpRepulsion, mode, multiplySpeed, position, reduceRotationY, reduceSpeed, repulsion, rotationY, setPosition, speed, turn, updateRepulsion, updateRotationY, updateTurn } = useGameStore();
+  const {
+    checkpoint,
+    incrementSpeed,
+    isControllable,
+    lapTimeStart,
+    lerpRepulsion,
+    mode,
+    multiplySpeed,
+    position,
+    reduceSpeed,
+    reduceTurn,
+    repulsion,
+    rotation,
+    updatePosition,
+    speed,
+    turn,
+    updateCheckpoint,
+    updateLapTimeStart,
+    updateRepulsion,
+    updateRotation,
+    updateTime,
+    updateTurn,
+  } = useGameStore();
 
   const { isDownDown, isLeftDown, isRightDown, isUpDown } = useKeys();
 
-  const rotation = vehicleRef.current ? vehicleRef.current.rotation : new THREE.Euler();
+  const getBoost = (position: THREE.Vector3) =>
+    getPixel(collisionImageData, new THREE.Vector2(position.x, position.z), 8);
+  const getHit = (position: THREE.Vector3, rotation: THREE.Vector2) =>
+    getCollision(collisionImageData, position, rotation);
+  const getY = (position: THREE.Vector3) => getHeight(heightImageData, position, HEIGHT_MIN, HEIGHT_MAX);
 
-  useFrame((state, delta) => {
+  //const rotation = vehicleRef.current ? vehicleRef.current.rotation : new THREE.Euler();
+
+  useFrame((state) => {
     const time = state.clock.getElapsedTime();
     const looptime = 20;
     const presentTime = (time % looptime) / looptime;
@@ -39,6 +72,26 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
       case "player":
         const direction3 = groupRef.current.getWorldDirection(new THREE.Vector3());
         const direction2 = new THREE.Vector2(direction3.x, direction3.z);
+
+        const pixel = getBoost(groupRef.current.position);
+
+        if (pixel) {
+          const [r, g, b] = pixel;
+
+          if (r === 0) {
+            if (g === 255 && checkpoint) {
+              updateCheckpoint(false);
+              updateLapTimeStart(time);
+            }
+
+            if (b === 255 && !checkpoint) {
+              updateCheckpoint(true);
+            }
+          } else if (r === 255 && g === 0) {
+            //this.audio.boost.play();
+            //setSpeed(Math.min(speed + SPEED_BOOST_ACCELERATION, SPEED_BOOST_MAX));
+          }
+        }
 
         // Handle collisions.
         const collision = getHit(groupRef.current.position, direction2);
@@ -81,51 +134,70 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
           }
 
           if (isLeftDown && isRightDown) {
-            reduceRotationY(TURN_DECELERATION);
+            reduceTurn(TURN_DECELERATION);
           } else if (isLeftDown) {
             updateTurn(TURN_ACCELERATION);
           } else if (isRightDown) {
             updateTurn(-TURN_ACCELERATION);
           } else {
-            reduceRotationY(TURN_DECELERATION);
+            reduceTurn(TURN_DECELERATION);
           }
+
+          updateTime(time - lapTimeStart);
         } else {
           reduceSpeed(SPEED_ACCELERATION);
-          reduceRotationY(TURN_DECELERATION);
+          reduceTurn(TURN_DECELERATION);
         }
 
         // this.updateCollision(direction3);
-        //this.updateLap();
+        // this.updateLap();
 
         groupRef.current.position.copy(position);
-        groupRef.current.rotation.copy(rotationY);
+        groupRef.current.rotation.copy(rotation);
         groupRef.current.rotateY(turn);
 
         // Bank camera.
         const cameraRotation = cameraPositionRef.current.rotation.clone();
         const cameraQuaternion = new THREE.Quaternion();
-        cameraQuaternion.setFromEuler(cameraPositionRef.current.rotation.clone()).slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(cameraPositionRef.current.rotation.x, cameraPositionRef.current.rotation.y, Math.PI + turn * 5)), 0.25);
+        cameraQuaternion
+          .setFromEuler(cameraPositionRef.current.rotation.clone())
+          .slerp(
+            new THREE.Quaternion().setFromEuler(
+              new THREE.Euler(
+                cameraPositionRef.current.rotation.x,
+                cameraPositionRef.current.rotation.y,
+                Math.PI + turn * 5
+              )
+            ),
+            0.25
+          );
 
         cameraPositionRef.current.rotation.setFromQuaternion(cameraQuaternion);
 
         // Rotate model.
-        const forward2 = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(0, 0), direction2.angle());
+        const forward2 = new THREE.Vector2(2, 0).rotateAround(new THREE.Vector2(), direction2.angle());
         const forward3 = groupRef.current.position.clone().add(new THREE.Vector3(forward2.x, 0, forward2.y));
         const previousY = getY(groupRef.current.position);
         const currentY = getY(forward3);
         const deltaY = previousY - currentY;
 
-        const modelQuaternion = new THREE.Quaternion().setFromEuler(rotation.clone()).slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI + deltaY * 1, -turn * 5, Math.PI + turn * 30)), 0.1);
+        const vehicleQuaternion = new THREE.Quaternion()
+          .setFromEuler(vehicleRef.current.rotation.clone())
+          .slerp(
+            new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI + deltaY * 1, -turn * 5, Math.PI + turn * 30)),
+            0.1
+          );
 
-        rotation.setFromQuaternion(modelQuaternion);
+        // Rotate model.
+        vehicleRef.current.rotation.setFromQuaternion(vehicleQuaternion);
         //groupRef.current.shadow.rotation.y = -groupRef.current.model.rotation.y * -2;
 
         // Move actor.
         groupRef.current.position.add(direction3.multiplyScalar(speed)).add(repulsion);
         groupRef.current.position.lerp(groupRef.current.position.clone().setY(previousY), 0.25);
 
-        setPosition(groupRef.current.position);
-        updateRotationY(groupRef.current.rotation);
+        updatePosition(groupRef.current.position);
+        updateRotation(groupRef.current.rotation);
 
         // Move camera.
         cameraPositionRef.current.getWorldPosition(state.camera.position);
@@ -148,9 +220,10 @@ export function Actor({ curve, getHit, getY }: ActorProps) {
     }
   });
 
-  // Set camera position to look at target.
+  // Set camera position to look at camera target.
   useLayoutEffect(() => {
     cameraPositionRef.current.lookAt(cameraTargetRef.current.position);
+    vehicleRef.current.rotation.copy(rotation);
   }, []);
 
   return (

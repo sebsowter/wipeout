@@ -20,13 +20,7 @@ export const Wrapper = styled.div<{ $isOpen: boolean }>(
     width: 100vw;
     height: 100vh;
     left: ${$isOpen ? 0 : -100}%;
-
-    ${Times} {
-      left: ${$isOpen ? 2.4 : -20}rem;
-    }
-
-    ${Ui} {
-      left: ${$isOpen ? 2.4 : -20}rem;
-    }
   `
 );
+
+export const H3 = styled.h3``;

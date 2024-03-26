@@ -74,15 +74,19 @@ export function getCollision(imageData: ImageData | undefined, position: THREE.V
   return;
 }
 
-export function getPixel(imageData: ImageData, position: THREE.Vector2, scale: number) {
-  const pixel = pointToPixel(position.x, position.y, imageData.width, imageData.height, scale);
-  const start = Math.floor(pixel.y * imageData.width + pixel.x) * 4;
+export function getPixel(imageData: ImageData | undefined, position: THREE.Vector2, scale: number) {
+  if (imageData) {
+    const pixel = pointToPixel(position.x, position.y, imageData.width, imageData.height, scale);
+    const start = Math.floor(pixel.y * imageData.width + pixel.x) * 4;
 
-  const r = imageData.data[start];
-  const g = imageData.data[start + 1];
-  const b = imageData.data[start + 2];
+    const r = imageData.data[start];
+    const g = imageData.data[start + 1];
+    const b = imageData.data[start + 2];
 
-  return [r, g, b];
+    return [r, g, b];
+  }
+
+  return [0, 0, 0];
 }
 
 export function pointToPixel(x: number, y: number, width: number, height: number, scale: number) {

@@ -4,8 +4,8 @@ import * as THREE from "three";
 
 export const Vehicle = forwardRef<THREE.Mesh>((_, ref) => {
   const map = useLoader(THREE.TextureLoader, "./images/ship.png");
-  const geometry = useLoader(THREE.BufferGeometryLoader, "./models/vehicles/geometry.json");
-  const material: THREE.MeshBasicMaterial = useLoader(THREE.MaterialLoader, "./models/vehicles/material.json");
+  const geometry = useLoader(THREE.BufferGeometryLoader, "./models/vehicle/geometry.json");
+  const material: THREE.MeshBasicMaterial = useLoader(THREE.MaterialLoader, "./models/vehicle/material.json");
   material.map = map;
   material.map.colorSpace = THREE.SRGBColorSpace;
   material.map.minFilter = THREE.NearestFilter;
@@ -14,10 +14,8 @@ export const Vehicle = forwardRef<THREE.Mesh>((_, ref) => {
   material.transparent = true;
 
   return (
-    <mesh>
-      <mesh ref={ref} position={new THREE.Vector3(0, 0.4, 0)}>
-        <mesh geometry={geometry} material={material} rotation={new THREE.Euler(-Math.PI / 2, 0, Math.PI)} scale={0.03} />
-      </mesh>
+    <mesh position={new THREE.Vector3(0, 0.4, 0)} ref={ref}>
+      <mesh geometry={geometry} material={material} rotation={new THREE.Euler(-Math.PI / 2, 0, 0)} scale={0.03} />
     </mesh>
   );
 });
