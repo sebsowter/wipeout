@@ -29,7 +29,7 @@ export function Actor({ curve }: ActorProps) {
 
   const { getBoost, getHit, getY } = useCollisions();
 
-  const [{ boost, crowd, engine, music, ramShip }] = useAudio();
+  const [{ boost, collide, crowd, engine }] = useAudio();
 
   const isDownRef = useRef(false);
   const isLeftRef = useRef(false);
@@ -139,8 +139,8 @@ export function Actor({ curve }: ActorProps) {
 
           repulsionRef.current.copy(repulsionVector.applyEuler(groupRef.current.rotation));
 
-          if (ramShip && !ramShip.isPlaying) {
-            ramShip.play();
+          if (collide && !collide.isPlaying) {
+            collide.play();
           }
         } else {
           repulsionRef.current.lerp(repulsionVector, 0.1);
@@ -254,14 +254,6 @@ export function Actor({ curve }: ActorProps) {
       turnRef.current = 0;
       groupRef.current.position.copy(START_POSITION);
       groupRef.current.rotation.copy(START_ROTATION);
-
-      crowd?.play();
-      engine?.play();
-      music?.play();
-    } else {
-      crowd?.stop();
-      engine?.stop();
-      music?.stop();
     }
 
     const vehicleQuaternion = new THREE.Quaternion();

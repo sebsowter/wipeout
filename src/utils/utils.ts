@@ -102,7 +102,8 @@ export function getHeight(imageData: ImageData | undefined, position: THREE.Vect
     const pixel = getPixel(imageData, new THREE.Vector2(position.x, position.z), 16);
 
     if (pixel) {
-      const [r, _, b] = pixel;
+      const r = pixel[0];
+      const b = pixel[2];
 
       if (r === 255 && b === 255) {
         return min;

@@ -10,13 +10,12 @@ import * as Styles from "./CameraHud.styles";
 export function CameraHud() {
   const { mode, updateMode } = useGameStore();
 
-  const [isOpen, setOpen] = useState(true);
+  const [isOpen, setOpen] = useState(mode === "camera");
 
   const topBar = useRef<HTMLDivElement>(null);
   const bottomBar = useRef<HTMLDivElement>(null);
 
   useGSAP(() => gsap.set(topBar.current, { top: isOpen ? "0%" : "-100%" }), { scope: topBar });
-  useGSAP(() => gsap.set(bottomBar.current, { bottom: isOpen ? "0%" : "-100%" }), { scope: bottomBar });
 
   useGSAP(
     () =>
@@ -27,6 +26,8 @@ export function CameraHud() {
       }),
     { dependencies: [isOpen], scope: topBar }
   );
+
+  useGSAP(() => gsap.set(bottomBar.current, { bottom: isOpen ? "0%" : "-100%" }), { scope: bottomBar });
 
   useGSAP(
     () =>
@@ -39,18 +40,14 @@ export function CameraHud() {
     { dependencies: [isOpen, updateMode], scope: bottomBar }
   );
 
-  useEffect(() => {
-    if (mode === "camera") {
-      setOpen(true);
-    }
-  }, [mode]);
+  useEffect(() => (mode === "camera" ? setOpen(true) : undefined), [mode]);
 
   return (
     <Styles.Wrapper>
       <Styles.LetterBar $position="top" ref={topBar} />
       <Styles.LetterBar $position="bottom" ref={bottomBar}>
         <Button onClick={() => setOpen(false)} size="large">
-          Play
+          PLAY
         </Button>
       </Styles.LetterBar>
     </Styles.Wrapper>

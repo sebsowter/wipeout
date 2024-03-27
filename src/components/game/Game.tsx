@@ -1,11 +1,9 @@
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
 
 import { getRoadCurve } from "../../utils/utils";
 
 import { SkyBox } from "./Skybox";
 import { Track } from "./Track";
-import { Lights } from "./Lights";
 import { Actor } from "./Actor";
 
 export function Game() {
@@ -20,12 +18,9 @@ export function Game() {
         near: 0.1,
       }}
     >
-      <Suspense fallback={null}>
-        <SkyBox />
-        <Track curve={curve} />
-        <Lights />
-        <Actor curve={curve} />
-      </Suspense>
+      <SkyBox />
+      <Track curve={curve} />
+      <Actor curve={curve} />
     </Canvas>
   );
 }

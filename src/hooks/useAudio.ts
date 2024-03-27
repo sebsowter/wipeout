@@ -1,69 +1,75 @@
 import { useLoader, useThree } from "@react-three/fiber";
-import { useEffect } from "react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+import { useGameStore } from "../state";
+
 export function useAudio(): [{ [key: string]: THREE.Audio | undefined }, THREE.AudioListener | undefined] {
-  const audioListenerRef = useRef<THREE.AudioListener>();
+  const { isMuted, mode } = useGameStore();
 
   const boostBuffer = useLoader(THREE.AudioLoader, "./audio/Boost.wav");
+  const collideBuffer = useLoader(THREE.AudioLoader, "./audio/Collide.wav");
   const crowdBuffer = useLoader(THREE.AudioLoader, "./audio/Crowd.wav");
   const engineBuffer = useLoader(THREE.AudioLoader, "./audio/Engine.wav");
   const goBuffer = useLoader(THREE.AudioLoader, "./audio/Go.wav");
   const musicBuffer = useLoader(THREE.AudioLoader, "./audio/ChemicalBeats.mp3");
-  const ramShipBuffer = useLoader(THREE.AudioLoader, "./audio/RamShip.wav");
   const readyBuffer = useLoader(THREE.AudioLoader, "./audio/Ready.wav");
 
-  const boostRef = useRef<THREE.Audio>();
-  const crowdRef = useRef<THREE.Audio>();
-  const engineRef = useRef<THREE.Audio>();
-  const goRef = useRef<THREE.Audio>();
-  const musicRef = useRef<THREE.Audio>();
-  const ramShipRef = useRef<THREE.Audio>();
-  const readyRef = useRef<THREE.Audio>();
+  const audioListener = useRef(new THREE.AudioListener());
+  const boost = useRef(new THREE.Audio(audioListener.current).setBuffer(boostBuffer).setVolume(isMuted ? 0 : 0.75));
+  const collide = useRef(new THREE.Audio(audioListener.current).setBuffer(collideBuffer).setVolume(isMuted ? 0 : 0.75));
+  const crowd = useRef(new THREE.Audio(audioListener.current).setBuffer(crowdBuffer).setVolume(0).setLoop(true));
+  const engine = useRef(new THREE.Audio(audioListener.current).setBuffer(engineBuffer).setVolume(0).setLoop(true));
+  const go = useRef(new THREE.Audio(audioListener.current).setBuffer(goBuffer).setVolume(isMuted ? 0 : 0.5));
+  const music = useRef(new THREE.Audio(audioListener.current).setBuffer(musicBuffer).setVolume(0.3).setLoop(true));
+  const ready = useRef(new THREE.Audio(audioListener.current).setBuffer(readyBuffer).setVolume(isMuted ? 0 : 0.5));
 
   const { camera } = useThree();
 
   useEffect(() => {
-    audioListenerRef.current = new THREE.AudioListener();
+    camera.add(audioListener.current);
+  }, [camera]);
 
-    boostRef.current = new THREE.Audio(audioListenerRef.current).setBuffer(boostBuffer);
-    boostRef.current.setVolume(0.75);
+  useEffect(() => {
+    if (isMuted || mode === "camera") {
+      boost.current?.setVolume(0);
+      collide.current?.setVolume(0);
+      go.current?.setVolume(0);
+      ready.current?.setVolume(0);
 
-    crowdRef.current = new THREE.Audio(audioListenerRef.current).setBuffer(crowdBuffer);
-    crowdRef.current.setVolume(0);
-    crowdRef.current.setLoop(true);
+      crowd.current?.pause();
+      engine.current?.pause();
+      music.current?.pause();
+    } else {
+      boost.current?.setVolume(0.75);
+      collide.current?.setVolume(0.75);
+      go.current?.setVolume(0.5);
+      ready.current?.setVolume(0.5);
 
-    engineRef.current = new THREE.Audio(audioListenerRef.current).setBuffer(engineBuffer);
-    engineRef.current.setVolume(0);
-    engineRef.current.setLoop(true);
+      if (crowd.current && !crowd.current.isPlaying) {
+        crowd.current.play();
+      }
 
-    goRef.current = new THREE.Audio(audioListenerRef.current).setBuffer(goBuffer);
-    goRef.current.setVolume(0.5);
+      if (engine.current && !engine.current.isPlaying) {
+        engine.current.play();
+      }
 
-    musicRef.current = new THREE.Audio(audioListenerRef.current).setBuffer(musicBuffer);
-    musicRef.current.setVolume(0.5);
-    musicRef.current.setLoop(true);
-
-    ramShipRef.current = new THREE.Audio(audioListenerRef.current).setBuffer(ramShipBuffer);
-    ramShipRef.current.setVolume(0.75);
-
-    readyRef.current = new THREE.Audio(audioListenerRef.current).setBuffer(readyBuffer);
-    readyRef.current.setVolume(0.5);
-
-    camera.add(audioListenerRef.current);
-  }, []);
+      if (music.current && !music.current.isPlaying) {
+        music.current.play();
+      }
+    }
+  }, [isMuted, mode]);
 
   return [
     {
-      boost: boostRef.current,
-      crowd: crowdRef.current,
-      engine: engineRef.current,
-      go: goRef.current,
-      music: musicRef.current,
-      ramShip: ramShipRef.current,
-      ready: readyRef.current,
+      boost: boost.current,
+      collide: collide.current,
+      crowd: crowd.current,
+      engine: engine.current,
+      go: go.current,
+      music: music.current,
+      ready: ready.current,
     },
-    audioListenerRef.current,
+    audioListener.current,
   ];
 }

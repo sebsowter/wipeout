@@ -21,74 +21,9 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     font-family: Open-Sans, Helvetica, Sans-Serif;
-  }
-
-  .hud {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    background-color: var(--color-black);
     width: 100%;
     height: 100%;
-  }
-
-  .hud-data {
-    position: absolute;
-    top: 3rem;
-    left: 3rem;
-  }
-
-  .hud-times {
-    position: absolute;
-    top: 9rem;
-    left: 0;
-  }
-
-  .ui {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .ui-bottom {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 20%;
-    background-color: black;
-  }
-
-  .ui-bottom2 {
-    position: absolute;
-    bottom: 3rem;
-    left: 3rem;
-  }
-
-  .ui-bottom2 button {
-    font-size: 1.5rem;
-    padding: 0.5rem 1rem;
-  }
-
-  .ui-top {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 20%;
-    background-color: black;
   }
 
   h3 {

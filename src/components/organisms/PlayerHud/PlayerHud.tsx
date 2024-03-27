@@ -1,6 +1,6 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useGameStore } from "../../../state";
 import { Button } from "../../atoms/Button";
@@ -8,11 +8,12 @@ import { LapTime } from "../../atoms/LapTime";
 import { LiveTime } from "../LiveTime";
 
 import * as Styles from "./PlayerHud.styles";
+import { Mute } from "../../atoms/Mute";
 
 export function PlayerHud() {
-  const { lapTimes, mode, updateMode } = useGameStore();
+  const { isMuted, lapTimes, mode, updateMode, updateMuted } = useGameStore();
 
-  const [isOpen, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(mode === "player");
 
   const container = useRef<HTMLDivElement>(null);
   const lapTimesContainer = useRef<HTMLDivElement>(null);
@@ -30,11 +31,7 @@ export function PlayerHud() {
     { dependencies: [isOpen, updateMode], scope: container }
   );
 
-  useEffect(() => {
-    if (mode === "player") {
-      setOpen(true);
-    }
-  }, [mode]);
+  useEffect(() => (mode === "player" ? setOpen(true) : undefined), [mode]);
 
   return (
     <Styles.Wrapper ref={container}>
@@ -49,7 +46,10 @@ export function PlayerHud() {
         </Styles.LapTimes>
       </Styles.Times>
       <Styles.Ui>
-        <Button onClick={() => setOpen(false)}>Quit</Button>
+        <Button onClick={() => setOpen(false)}>QUIT</Button>
+        <Button onClick={() => updateMuted(!isMuted)}>
+          <Mute isMuted={isMuted} />
+        </Button>
       </Styles.Ui>
     </Styles.Wrapper>
   );

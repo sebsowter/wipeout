@@ -1,8 +1,5 @@
 import * as THREE from "three";
 
-// Stand asset.
-// TODO: Add textures.
-
 export interface BuildingProps {
   position: THREE.Vector3;
   rotateY?: number;

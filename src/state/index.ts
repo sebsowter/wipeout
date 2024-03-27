@@ -5,6 +5,7 @@ export type CameraMode = "camera" | "orbit" | "player" | "bird";
 export interface GameState {
   checkpoint: boolean;
   isControllable: boolean;
+  isMuted: boolean;
   lapTimes: number[];
   lapTimeStart: number;
   lights: number;
@@ -12,11 +13,13 @@ export interface GameState {
   updateCheckpoint: (checkpoint: boolean) => void;
   updateLights: (lights: number) => void;
   updateMode: (mode: CameraMode) => void;
+  updateMuted: (isMuted: boolean) => void;
 }
 
 export const useGameStore = create<GameState>()((set) => ({
   checkpoint: false,
   isControllable: false,
+  isMuted: true,
   lapTimes: [],
   lapTimeStart: 0,
   lights: 0,
@@ -78,5 +81,10 @@ export const useGameStore = create<GameState>()((set) => ({
       lapTimeStart: new Date().valueOf(),
       lights: 0,
       mode,
+    })),
+  updateMuted: (isMuted) =>
+    set((state) => ({
+      ...state,
+      isMuted,
     })),
 }));

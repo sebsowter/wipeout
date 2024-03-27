@@ -18,6 +18,9 @@ export const LapTimes = styled.div``;
 
 export const Ui = styled.div`
   position: absolute;
+  display: flex;
+  align-items: center;
+  column-gap: 1rem;
   bottom: 2.4rem;
   left: 2.4rem;
 `;
