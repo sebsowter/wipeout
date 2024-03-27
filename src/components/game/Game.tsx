@@ -11,7 +11,6 @@ export function Game() {
         far: 1000,
         fov: 100,
         near: 0.1,
-        //position: new THREE.Vector3(16, 4, 0),
       }}
     >
       <Suspense fallback={null}>

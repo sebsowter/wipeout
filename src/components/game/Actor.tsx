@@ -2,55 +2,45 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 
-import { useGameStore } from "../../App";
+import { useGameStore } from "../../state";
 import {
   SPEED_ACCELERATION,
   SPEED_BOOST_ACCELERATION,
   SPEED_BOOST_MAX,
   SPEED_DECELERATION,
   SPEED_MAX,
+  START_POSITION,
+  START_ROTATION,
   TURN_ACCELERATION,
   TURN_DECELERATION,
-  TURN_MAX,
 } from "../../constants";
 import { useAudio, useCollisions, useKeys } from "../../hooks";
+import { minMaxSpeed, minMaxTurn, reduceSpeed, reduceTurn } from "../../utils/utils";
 
 import { Shadow } from "./Shadow";
 import { Vehicle } from "./Vehicle";
-
-//function incrementSpeed(value: number) {
-//  return Math.max(value - SPEED_DECELERATION, 0);
-//}
-
-function reduceSpeed(value: number) {
-  return value > 0 ? Math.max(value - SPEED_DECELERATION, 0) : value < 0 ? Math.min(value + SPEED_DECELERATION, 0) : 0;
-}
-
-function reduceTurn(value: number) {
-  return value > 0 ? Math.max(value - TURN_DECELERATION, 0) : value < 0 ? Math.min(value + TURN_DECELERATION, 0) : 0;
-}
 
 export interface ActorProps {
   curve: THREE.CurvePath<THREE.Vector3>;
 }
 
 export function Actor({ curve }: ActorProps) {
-  const groupRef = useRef<THREE.Group>(null!);
-  const vehicleRef = useRef<THREE.Mesh>(null!);
-  const cameraPositionRef = useRef<THREE.Mesh>(null!);
-  const cameraTargetRef = useRef<THREE.Mesh>(null!);
-  const speedRef = useRef(0);
-  const turnRef = useRef(0);
-  const repulsionRef = useRef(new THREE.Vector3());
-
-  const { audio } = useAudio();
-  const { boost, crowd, engine, ramShip } = audio;
-
   const { checkpoint, isControllable, mode, updateCheckpoint } = useGameStore();
 
   const { isDownDown, isLeftDown, isRightDown, isUpDown } = useKeys();
 
   const { getBoost, getHit, getY } = useCollisions();
+
+  const [{ boost, crowd, engine, ramShip }] = useAudio();
+
+  const groupRef = useRef<THREE.Group>(null!);
+  const vehicleRef = useRef<THREE.Mesh>(null!);
+  const shadowRef = useRef<THREE.Mesh>(null!);
+  const cameraPositionRef = useRef<THREE.Mesh>(null!);
+  const cameraTargetRef = useRef<THREE.Mesh>(null!);
+  const speedRef = useRef(0);
+  const turnRef = useRef(0);
+  const repulsionRef = useRef(new THREE.Vector3());
 
   const repulsionVector = new THREE.Vector3();
   const crowdVector = new THREE.Vector3(24, 0, 0);
@@ -108,13 +98,13 @@ export function Actor({ curve }: ActorProps) {
 
           if (right > left) {
             repulsionVector.setX(value);
-            speedRef.current *= 15 * delta;
+            speedRef.current *= delta * 15;
           } else if (right < left) {
             repulsionVector.setX(-value);
-            speedRef.current *= 15 * delta;
+            speedRef.current *= delta * 15;
           } else {
             repulsionVector.setZ(-value);
-            speedRef.current *= 30 * delta;
+            speedRef.current *= delta * 30;
           }
 
           repulsionRef.current.copy(repulsionVector.applyEuler(groupRef.current.rotation));
@@ -129,28 +119,25 @@ export function Actor({ curve }: ActorProps) {
         // Handle controls.
         if (isControllable) {
           if (isUpDown) {
-            speedRef.current = Math.min(speedRef.current + SPEED_ACCELERATION, SPEED_MAX);
+            speedRef.current = minMaxSpeed(speedRef.current + delta * SPEED_ACCELERATION);
           } else if (isDownDown) {
-            speedRef.current = Math.max(speedRef.current - SPEED_ACCELERATION, -SPEED_MAX / 2);
+            speedRef.current = minMaxSpeed(speedRef.current - delta * SPEED_ACCELERATION);
           } else {
-            speedRef.current = reduceSpeed(speedRef.current);
+            speedRef.current = reduceSpeed(speedRef.current, delta * SPEED_DECELERATION);
           }
 
           if (isLeftDown && isRightDown) {
-            turnRef.current = reduceTurn(turnRef.current);
+            turnRef.current = reduceTurn(turnRef.current, delta * TURN_DECELERATION);
           } else if (isLeftDown) {
-            turnRef.current = Math.min(turnRef.current + TURN_ACCELERATION, TURN_MAX);
+            turnRef.current = minMaxTurn(turnRef.current + delta * TURN_ACCELERATION);
           } else if (isRightDown) {
-            turnRef.current = Math.max(turnRef.current - TURN_ACCELERATION, -TURN_MAX);
+            turnRef.current = minMaxTurn(turnRef.current - delta * TURN_ACCELERATION);
           } else {
-            turnRef.current = reduceTurn(turnRef.current);
+            turnRef.current = reduceTurn(turnRef.current, delta * TURN_DECELERATION);
           }
-
-          //updateTime(time);
-          //updateTime(time - lapTimeStart);
         } else {
-          speedRef.current = reduceSpeed(speedRef.current);
-          turnRef.current = reduceTurn(turnRef.current);
+          speedRef.current = reduceSpeed(speedRef.current, delta * SPEED_DECELERATION);
+          turnRef.current = reduceTurn(turnRef.current, delta * TURN_DECELERATION);
         }
 
         // Rotate vehicle.
@@ -166,12 +153,14 @@ export function Actor({ curve }: ActorProps) {
             .setFromEuler(vehicleRef.current.rotation)
             .slerp(
               quaternion.setFromEuler(
-                euler.set(Math.PI + deltaY * 1, -turnRef.current * 5, Math.PI + turnRef.current * 30)
+                euler.set(Math.PI + deltaY, -turnRef.current * 5, Math.PI + turnRef.current * 30)
               ),
               0.1
             )
         );
-        //groupRef.current.shadow.rotation.y = -groupRef.current.model.rotation.y * -2;
+
+        // Rotate shadow.
+        shadowRef.current.rotation.y = -vehicleRef.current.rotation.y * -2;
 
         // Move actor.
         groupRef.current.rotateY(turnRef.current);
@@ -231,14 +220,25 @@ export function Actor({ curve }: ActorProps) {
 
   useEffect(() => {
     if (mode === "player") {
+      speedRef.current = 0;
+      turnRef.current = 0;
+      groupRef.current.position.copy(START_POSITION);
+      groupRef.current.rotation.copy(START_ROTATION);
+
       crowd?.play();
       engine?.play();
-      //music.play();
     } else {
       crowd?.stop();
       engine?.stop();
-      //music.stop();
     }
+
+    const vehicleQuaternion = new THREE.Quaternion();
+    const euler = new THREE.Euler();
+
+    vehicleRef.current.rotation.setFromQuaternion(vehicleQuaternion.setFromEuler(euler.set(0, Math.PI, 0)));
+    cameraPositionRef.current.rotation.copy(
+      euler.set(cameraPositionRef.current.rotation.x, cameraPositionRef.current.rotation.y, Math.PI)
+    );
   }, [crowd, engine, mode]);
 
   return (
@@ -246,7 +246,7 @@ export function Actor({ curve }: ActorProps) {
       {/* Set these to adjust camera position when viewed behind the actor. */}
       <mesh ref={cameraTargetRef} position={new THREE.Vector3(0, 0.5, -4)} />
       <mesh ref={cameraPositionRef} position={new THREE.Vector3(0, 0.6, -0.75)} />
-      <Shadow rotationY={0} />
+      <Shadow ref={shadowRef} />
       <Vehicle ref={vehicleRef} />
     </group>
   );

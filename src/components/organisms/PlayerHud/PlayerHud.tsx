@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useGameStore } from "../../../App";
+
+import { useGameStore } from "../../../state";
 import { Button } from "../../atoms/Button";
 import { LapTime } from "../../atoms/LapTime";
 import { Time } from "../../atoms/Time";
@@ -7,12 +8,19 @@ import { Time } from "../../atoms/Time";
 import * as Styles from "./PlayerHud.styles";
 
 export function PlayerHud() {
-  const [time, setTime] = useState(new Date().valueOf());
-
   const { isControllable, lapTimes, lapTimeStart, mode, updateMode } = useGameStore();
 
+  const [time, setTime] = useState(new Date().valueOf());
+
   useEffect(() => {
-    const interval = setInterval(() => setTime(new Date().valueOf() - lapTimeStart), 10);
+    let interval!: NodeJS.Timer;
+
+    if (isControllable) {
+      interval = setInterval(() => setTime(new Date().valueOf() - lapTimeStart), 10);
+    } else {
+      clearInterval(interval);
+      setTime(0);
+    }
 
     return () => clearInterval(interval);
   }, [isControllable, lapTimeStart]);
@@ -24,7 +32,7 @@ export function PlayerHud() {
         <Time size="large" value={time / 1000} />
         <Styles.H3>BEST LAPS</Styles.H3>
         {lapTimes.map((value, index) => (
-          <LapTime index={index} key={index} value={value} />
+          <LapTime index={index} key={index} value={value / 1000} />
         ))}
       </Styles.Times>
       <Styles.Ui>

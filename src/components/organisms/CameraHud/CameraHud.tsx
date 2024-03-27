@@ -1,4 +1,4 @@
-import { useGameStore } from "../../../App";
+import { useGameStore } from "../../../state";
 import { Button } from "../../atoms/Button";
 
 import * as Styles from "./CameraHud.styles";

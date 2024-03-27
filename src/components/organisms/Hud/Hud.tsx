@@ -1,5 +1,5 @@
-import { CameraHud } from "./CameraHud";
-import { PlayerHud } from "./PlayerHud";
+import { CameraHud } from "../CameraHud";
+import { PlayerHud } from "../PlayerHud";
 
 import * as Styles from "./Hud.styles";
 

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { SPEED_MAX, TURN_MAX } from "../constants";
 
 export function getImageDataFromTexture(texture: THREE.Texture) {
   const canvas = document.createElement("canvas");
@@ -19,15 +20,78 @@ export function getImageDataFromTexture(texture: THREE.Texture) {
 export function getRoadCurve() {
   const curvePath = new THREE.CurvePath<THREE.Vector3>();
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 0), new THREE.Vector3(16, 0, -32)));
-  curvePath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(16, 0, -32), new THREE.Vector3(16, 0, -48), new THREE.Vector3(32, 0, -40), new THREE.Vector3(32, 0, -56)));
-  curvePath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(32, 0, -56), new THREE.Vector3(32, 0, -72), new THREE.Vector3(32, 2, -72), new THREE.Vector3(32, 2, -88)));
-  curvePath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(32, 2, -88), new THREE.Vector3(32, 2, -100), new THREE.Vector3(16, 2, -100), new THREE.Vector3(16, 2, -88)));
-  curvePath.add(new THREE.CatmullRomCurve3([new THREE.Vector3(16, 2, -88), new THREE.Vector3(16, 2, -80), new THREE.Vector3(0, 3, -64), new THREE.Vector3(0, 5, -48), new THREE.Vector3(-32, 4, -16), new THREE.Vector3(-24, 6, 16), new THREE.Vector3(-24, 8, 48), new THREE.Vector3(-24, 8, 56)], false));
-  curvePath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-24, 8, 56), new THREE.Vector3(-24, 8, 64), new THREE.Vector3(-16, 7, 72), new THREE.Vector3(-8, 7, 72)));
-  curvePath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(-8, 7, 72), new THREE.Vector3(8, 7, 72), new THREE.Vector3(8, 8, 96), new THREE.Vector3(24, 8, 96)));
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(16, 0, -32),
+      new THREE.Vector3(16, 0, -48),
+      new THREE.Vector3(32, 0, -40),
+      new THREE.Vector3(32, 0, -56)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 0, -56),
+      new THREE.Vector3(32, 0, -72),
+      new THREE.Vector3(32, 2, -72),
+      new THREE.Vector3(32, 2, -88)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 2, -88),
+      new THREE.Vector3(32, 2, -100),
+      new THREE.Vector3(16, 2, -100),
+      new THREE.Vector3(16, 2, -88)
+    )
+  );
+  curvePath.add(
+    new THREE.CatmullRomCurve3(
+      [
+        new THREE.Vector3(16, 2, -88),
+        new THREE.Vector3(16, 2, -80),
+        new THREE.Vector3(0, 3, -64),
+        new THREE.Vector3(0, 5, -48),
+        new THREE.Vector3(-32, 4, -16),
+        new THREE.Vector3(-24, 6, 16),
+        new THREE.Vector3(-24, 8, 48),
+        new THREE.Vector3(-24, 8, 56),
+      ],
+      false
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(-24, 8, 56),
+      new THREE.Vector3(-24, 8, 64),
+      new THREE.Vector3(-16, 7, 72),
+      new THREE.Vector3(-8, 7, 72)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(-8, 7, 72),
+      new THREE.Vector3(8, 7, 72),
+      new THREE.Vector3(8, 8, 96),
+      new THREE.Vector3(24, 8, 96)
+    )
+  );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(24, 8, 96), new THREE.Vector3(32, 8, 96)));
-  curvePath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(32, 8, 96), new THREE.Vector3(48, 8, 96), new THREE.Vector3(48, 4, 72), new THREE.Vector3(32, 4, 72)));
-  curvePath.add(new THREE.CubicBezierCurve3(new THREE.Vector3(32, 4, 72), new THREE.Vector3(8, 4, 72), new THREE.Vector3(16, 0, 48), new THREE.Vector3(16, 0, 32)));
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 8, 96),
+      new THREE.Vector3(48, 8, 96),
+      new THREE.Vector3(48, 4, 72),
+      new THREE.Vector3(32, 4, 72)
+    )
+  );
+  curvePath.add(
+    new THREE.CubicBezierCurve3(
+      new THREE.Vector3(32, 4, 72),
+      new THREE.Vector3(8, 4, 72),
+      new THREE.Vector3(16, 0, 48),
+      new THREE.Vector3(16, 0, 32)
+    )
+  );
   curvePath.add(new THREE.LineCurve3(new THREE.Vector3(16, 0, 32), new THREE.Vector3(16, 0, 0)));
 
   return curvePath;
@@ -53,7 +117,11 @@ export function getHeight(imageData: ImageData | undefined, position: THREE.Vect
   return 0;
 }
 
-export function getCollision(imageData: ImageData | undefined, position: THREE.Vector3, direction: THREE.Vector2): [number, number] | undefined {
+export function getCollision(
+  imageData: ImageData | undefined,
+  position: THREE.Vector3,
+  direction: THREE.Vector2
+): [number, number] | undefined {
   if (imageData) {
     const pixel = getPixel(imageData, new THREE.Vector2(position.x, position.z), 8);
     const angle = direction.angle();
@@ -64,8 +132,16 @@ export function getCollision(imageData: ImageData | undefined, position: THREE.V
       const hitLeft = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle - Math.PI / 2);
       const hitRight = new THREE.Vector2(4, 0).rotateAround(new THREE.Vector2(0, 0), angle + Math.PI / 2);
 
-      const [left] = getPixel(imageData, new THREE.Vector2(hitLeft.x, hitLeft.y).add(new THREE.Vector2(position.x, position.z)), 8);
-      const [right] = getPixel(imageData, new THREE.Vector2(hitRight.x, hitRight.y).add(new THREE.Vector2(position.x, position.z)), 8);
+      const [left] = getPixel(
+        imageData,
+        new THREE.Vector2(hitLeft.x, hitLeft.y).add(new THREE.Vector2(position.x, position.z)),
+        8
+      );
+      const [right] = getPixel(
+        imageData,
+        new THREE.Vector2(hitRight.x, hitRight.y).add(new THREE.Vector2(position.x, position.z)),
+        8
+      );
 
       return [left / 255, right / 255];
     }
@@ -98,6 +174,22 @@ export function formatTwoDigits(value: number) {
     minimumIntegerDigits: 2,
     useGrouping: false,
   });
+}
+
+export function minMaxSpeed(value: number) {
+  return Math.min(Math.max(value, -SPEED_MAX / 2), SPEED_MAX);
+}
+
+export function minMaxTurn(value: number) {
+  return Math.min(Math.max(value, -TURN_MAX), TURN_MAX);
+}
+
+export function reduceSpeed(value: number, by: number) {
+  return value > 0 ? Math.max(value - by, 0) : value < 0 ? Math.min(value + by, 0) : 0;
+}
+
+export function reduceTurn(value: number, by: number) {
+  return value > 0 ? Math.max(value - by, 0) : value < 0 ? Math.min(value + by, 0) : 0;
 }
 
 /*
