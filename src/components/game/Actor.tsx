@@ -14,7 +14,7 @@ import {
   TURN_ACCELERATION,
   TURN_DECELERATION,
 } from "../../constants";
-import { useAudio, useCollisions, useKeys } from "../../hooks";
+import { useAudio, useCollisions } from "../../hooks";
 import { minMaxSpeed, minMaxTurn, reduceSpeed, reduceTurn } from "../../utils/utils";
 
 import { Shadow } from "./Shadow";
@@ -27,12 +27,14 @@ export interface ActorProps {
 export function Actor({ curve }: ActorProps) {
   const { checkpoint, isControllable, mode, updateCheckpoint } = useGameStore();
 
-  const { isDownDown, isLeftDown, isRightDown, isUpDown } = useKeys();
-
   const { getBoost, getHit, getY } = useCollisions();
 
-  const [{ boost, crowd, engine, ramShip }] = useAudio();
+  const [{ boost, crowd, engine, music, ramShip }] = useAudio();
 
+  const isDownRef = useRef(false);
+  const isLeftRef = useRef(false);
+  const isRightRef = useRef(false);
+  const isUpRef = useRef(false);
   const groupRef = useRef<THREE.Group>(null!);
   const vehicleRef = useRef<THREE.Mesh>(null!);
   const shadowRef = useRef<THREE.Mesh>(null!);
@@ -56,6 +58,34 @@ export function Actor({ curve }: ActorProps) {
   const vector3 = new THREE.Vector3();
   const euler = new THREE.Euler();
   const quaternion = new THREE.Quaternion();
+
+  const onKeyDown = (event: KeyboardEvent) => {
+    const keyCode = event.key;
+
+    if (keyCode === "w" || keyCode === "ArrowUp") {
+      isUpRef.current = true;
+    } else if (keyCode === "s" || keyCode === "ArrowDown") {
+      isDownRef.current = true;
+    } else if (keyCode === "a" || keyCode === "ArrowLeft") {
+      isLeftRef.current = true;
+    } else if (keyCode === "d" || keyCode === "ArrowRight") {
+      isRightRef.current = true;
+    }
+  };
+
+  const onKeyUp = (event: KeyboardEvent) => {
+    const keyCode = event.key;
+
+    if (keyCode === "w" || keyCode === "ArrowUp") {
+      isUpRef.current = false;
+    } else if (keyCode === "s" || keyCode === "ArrowDown") {
+      isDownRef.current = false;
+    } else if (keyCode === "a" || keyCode === "ArrowLeft") {
+      isLeftRef.current = false;
+    } else if (keyCode === "d" || keyCode === "ArrowRight") {
+      isRightRef.current = false;
+    }
+  };
 
   useFrame((state, delta) => {
     switch (mode) {
@@ -118,19 +148,19 @@ export function Actor({ curve }: ActorProps) {
 
         // Handle controls.
         if (isControllable) {
-          if (isUpDown) {
+          if (isUpRef.current) {
             speedRef.current = minMaxSpeed(speedRef.current + delta * SPEED_ACCELERATION);
-          } else if (isDownDown) {
+          } else if (isDownRef.current) {
             speedRef.current = minMaxSpeed(speedRef.current - delta * SPEED_ACCELERATION);
           } else {
             speedRef.current = reduceSpeed(speedRef.current, delta * SPEED_DECELERATION);
           }
 
-          if (isLeftDown && isRightDown) {
+          if (isLeftRef.current && isRightRef.current) {
             turnRef.current = reduceTurn(turnRef.current, delta * TURN_DECELERATION);
-          } else if (isLeftDown) {
+          } else if (isLeftRef.current) {
             turnRef.current = minMaxTurn(turnRef.current + delta * TURN_ACCELERATION);
-          } else if (isRightDown) {
+          } else if (isRightRef.current) {
             turnRef.current = minMaxTurn(turnRef.current - delta * TURN_ACCELERATION);
           } else {
             turnRef.current = reduceTurn(turnRef.current, delta * TURN_DECELERATION);
@@ -227,9 +257,11 @@ export function Actor({ curve }: ActorProps) {
 
       crowd?.play();
       engine?.play();
+      music?.play();
     } else {
       crowd?.stop();
       engine?.stop();
+      music?.stop();
     }
 
     const vehicleQuaternion = new THREE.Quaternion();
@@ -240,6 +272,16 @@ export function Actor({ curve }: ActorProps) {
       euler.set(cameraPositionRef.current.rotation.x, cameraPositionRef.current.rotation.y, Math.PI)
     );
   }, [crowd, engine, mode]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown, false);
+    document.addEventListener("keyup", onKeyUp, false);
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, false);
+      document.removeEventListener("keyup", onKeyUp, false);
+    };
+  }, []);
 
   return (
     <group ref={groupRef}>

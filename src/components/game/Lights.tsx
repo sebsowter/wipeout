@@ -3,9 +3,12 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 import { useGameStore } from "../../state";
+import { useAudio } from "../../hooks";
 
 export function Lights() {
   const { lights, mode, updateLights } = useGameStore();
+
+  const [{ go, ready }] = useAudio();
 
   const materialRef = useRef<THREE.MeshBasicMaterial>(null!);
 
@@ -20,6 +23,12 @@ export function Lights() {
 
     if (mode === "player") {
       materialRef.current.map = textures[lights % textures.length];
+
+      if (lights === 1) {
+        ready?.play();
+      } else if (lights === 2) {
+        go?.play();
+      }
 
       if (lights < 2) {
         timeout = setTimeout(() => updateLights(lights + 1), 1500);
