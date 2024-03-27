@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 
 // Hook to handle direction keys.
 // TODO: Handle mobile touch controls.
-
-export const useKeys = () => {
+export function useKeys() {
   const [isDownDown, setDownDown] = useState(false);
   const [isLeftDown, setLeftDown] = useState(false);
   const [isRightDown, setRightDown] = useState(false);
@@ -11,7 +10,6 @@ export const useKeys = () => {
 
   const onKeyDown = (event: KeyboardEvent) => {
     const keyCode = event.key;
-    console.log("onKeyDown", keyCode);
 
     if (keyCode === "w" || keyCode === "ArrowUp") {
       setUpDown(true);
@@ -26,7 +24,6 @@ export const useKeys = () => {
 
   const onKeyUp = (event: KeyboardEvent) => {
     const keyCode = event.key;
-    console.log("onKeyUp", keyCode);
 
     if (keyCode === "w" || keyCode === "ArrowUp") {
       setUpDown(false);
@@ -55,4 +52,4 @@ export const useKeys = () => {
     isRightDown,
     isUpDown,
   };
-};
+}
