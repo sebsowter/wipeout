@@ -5,22 +5,21 @@ import { mkSimplexNoise } from "../../utils/simplex";
 import { getImageDataFromTexture } from "../../utils/utils";
 
 export function Terrain() {
+  const terrainMap = useLoader(THREE.TextureLoader, "./images/terrain.png");
   const map = useLoader(THREE.TextureLoader, "./images/rock.png");
-  const map2 = useLoader(THREE.TextureLoader, "./images/terrain.png");
-
   map.minFilter = THREE.NearestFilter;
   map.magFilter = THREE.NearestFilter;
 
   const material = new THREE.MeshBasicMaterial({
     color: 0x999999,
-    map: map,
+    map,
   });
 
   if (material.map) {
     material.map.colorSpace = THREE.SRGBColorSpace;
   }
 
-  const imageData = getImageDataFromTexture(map2);
+  const imageData = getImageDataFromTexture(terrainMap);
 
   if (imageData) {
     const geometry = new THREE.PlaneGeometry(

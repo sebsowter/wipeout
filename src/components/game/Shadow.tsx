@@ -4,16 +4,11 @@ import * as THREE from "three";
 
 export const Shadow = forwardRef<THREE.Mesh>((_, ref) => {
   const map = useLoader(THREE.TextureLoader, "./images/shadow.png");
-  const geometry = new THREE.PlaneGeometry(0.75, 0.375);
-  const material = new THREE.MeshBasicMaterial({
-    map,
-    opacity: 0.4,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
-  material.depthTest = false;
 
   return (
-    <mesh geometry={geometry} material={material} position={new THREE.Vector3(0, 0, 0)} ref={ref} renderOrder={998} />
+    <mesh position={[0, 0, 0]} ref={ref} renderOrder={998}>
+      <planeGeometry args={[0.75, 0.375]} />
+      <meshBasicMaterial depthTest={false} map={map} opacity={0.4} side={THREE.DoubleSide} transparent />
+    </mesh>
   );
 });
