@@ -96,8 +96,8 @@ export function roadSegmentTunnel() {
     }
 
     if (indexX === 2) {
-      x = -2.25;
-      z = 1.25;
+      x = -2.3;
+      z = 1.3;
     }
 
     if (indexX === 3) {
@@ -111,8 +111,8 @@ export function roadSegmentTunnel() {
     }
 
     if (indexX === 14) {
-      x = 2.25;
-      z = 1.25;
+      x = 2.3;
+      z = 1.3;
     }
 
     if (indexX === 15) {

@@ -15,7 +15,7 @@ export const Inner = styled.div`
   width: max-content;
   margin: 0;
   font-family: wipeout;
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: var(--color-orange);
   top: 50%;
   left: 50%;

@@ -19,7 +19,7 @@ export interface GameState {
 export const useGameStore = create<GameState>()((set) => ({
   checkpoint: false,
   isControllable: false,
-  isMuted: true,
+  isMuted: false,
   lapTimes: [],
   lapTimeStart: 0,
   lights: 0,
