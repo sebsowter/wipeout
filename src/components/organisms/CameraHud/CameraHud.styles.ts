@@ -8,8 +8,8 @@ export const Wrapper = styled.div`
   height: 100vh;
 `;
 
-export const LetterBar = styled.div<{ $isOpen: boolean; $position: "bottom" | "top" }>(
-  ({ $isOpen, $position }) => `
+export const LetterBar = styled.div<{ $position: "bottom" | "top" }>(
+  ({ $position }) => `
     position: absolute;
     display: flex;
     justify-content: center;
@@ -19,6 +19,5 @@ export const LetterBar = styled.div<{ $isOpen: boolean; $position: "bottom" | "t
     height: 20%;
     background-color: black;
     ${$position === "top" ? `top: 0;` : `bottom: 0;`}
-    transform: translateY(${$isOpen ? "0" : $position === "top" ? "-100%" : "100%"});
   `
 );

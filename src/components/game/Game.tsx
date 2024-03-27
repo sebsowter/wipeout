@@ -1,9 +1,16 @@
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 
-import { Scene } from "./Scene";
+import { getRoadCurve } from "../../utils/utils";
+
+import { SkyBox } from "./Skybox";
+import { Track } from "./Track";
+import { Lights } from "./Lights";
+import { Actor } from "./Actor";
 
 export function Game() {
+  const curve = getRoadCurve();
+
   return (
     <Canvas
       camera={{
@@ -14,7 +21,10 @@ export function Game() {
       }}
     >
       <Suspense fallback={null}>
-        <Scene />
+        <SkyBox />
+        <Track curve={curve} />
+        <Lights />
+        <Actor curve={curve} />
       </Suspense>
     </Canvas>
   );

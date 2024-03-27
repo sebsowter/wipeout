@@ -1,3 +1,7 @@
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { useEffect, useRef, useState } from "react";
+
 import { useGameStore } from "../../../state";
 import { Button } from "../../atoms/Button";
 
@@ -5,13 +9,47 @@ import * as Styles from "./CameraHud.styles";
 
 export function CameraHud() {
   const { mode, updateMode } = useGameStore();
-  const isOpen = mode === "camera";
+
+  const [isOpen, setOpen] = useState(true);
+
+  const topBar = useRef<HTMLDivElement>(null);
+  const bottomBar = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => gsap.set(topBar.current, { top: isOpen ? "0%" : "-100%" }), { scope: topBar });
+  useGSAP(() => gsap.set(bottomBar.current, { bottom: isOpen ? "0%" : "-100%" }), { scope: bottomBar });
+
+  useGSAP(
+    () =>
+      gsap.to(topBar.current, {
+        top: isOpen ? "0%" : "-100%",
+        duration: 1,
+        ease: isOpen ? "Quint.easeOut" : "sine.in",
+      }),
+    { dependencies: [isOpen], scope: topBar }
+  );
+
+  useGSAP(
+    () =>
+      gsap.to(bottomBar.current, {
+        bottom: isOpen ? "0%" : "-100%",
+        duration: 1,
+        ease: isOpen ? "Quint.easeOut" : "sine.in",
+        onComplete: !isOpen ? () => updateMode("player") : undefined,
+      }),
+    { dependencies: [isOpen, updateMode], scope: bottomBar }
+  );
+
+  useEffect(() => {
+    if (mode === "camera") {
+      setOpen(true);
+    }
+  }, [mode]);
 
   return (
     <Styles.Wrapper>
-      <Styles.LetterBar $isOpen={isOpen} $position="top" />
-      <Styles.LetterBar $isOpen={isOpen} $position="bottom">
-        <Button onClick={() => updateMode("player")} size="large">
+      <Styles.LetterBar $position="top" ref={topBar} />
+      <Styles.LetterBar $position="bottom" ref={bottomBar}>
+        <Button onClick={() => setOpen(false)} size="large">
           Play
         </Button>
       </Styles.LetterBar>

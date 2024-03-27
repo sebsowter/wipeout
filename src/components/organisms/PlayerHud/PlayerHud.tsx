@@ -1,42 +1,55 @@
-import { useEffect, useState } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useGameStore } from "../../../state";
 import { Button } from "../../atoms/Button";
 import { LapTime } from "../../atoms/LapTime";
-import { Time } from "../../atoms/Time";
+import { LiveTime } from "../LiveTime";
 
 import * as Styles from "./PlayerHud.styles";
 
 export function PlayerHud() {
-  const { isControllable, lapTimes, lapTimeStart, mode, updateMode } = useGameStore();
+  const { lapTimes, mode, updateMode } = useGameStore();
 
-  const [time, setTime] = useState(new Date().valueOf());
+  const [isOpen, setOpen] = useState(false);
+
+  const container = useRef<HTMLDivElement>(null);
+  const lapTimesContainer = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => gsap.set(container.current, { x: isOpen ? "0%" : "-100%" }), { scope: container });
+
+  useGSAP(
+    () =>
+      gsap.to(container.current, {
+        x: isOpen ? "0%" : "-100%",
+        duration: 0.5,
+        ease: isOpen ? "Quint.easeOut" : "sine.in",
+        onComplete: !isOpen ? () => updateMode("camera") : undefined,
+      }),
+    { dependencies: [isOpen, updateMode], scope: container }
+  );
 
   useEffect(() => {
-    let interval!: NodeJS.Timer;
-
-    if (isControllable) {
-      interval = setInterval(() => setTime(new Date().valueOf() - lapTimeStart), 10);
-    } else {
-      clearInterval(interval);
-      setTime(0);
+    if (mode === "player") {
+      setOpen(true);
     }
-
-    return () => clearInterval(interval);
-  }, [isControllable, lapTimeStart]);
+  }, [mode]);
 
   return (
-    <Styles.Wrapper $isOpen={mode === "player"}>
+    <Styles.Wrapper ref={container}>
       <Styles.Times>
         <Styles.H3>LAP TIME</Styles.H3>
-        <Time size="large" value={time / 1000} />
-        <Styles.H3>BEST LAPS</Styles.H3>
-        {lapTimes.map((value, index) => (
-          <LapTime index={index} key={index} value={value / 1000} />
-        ))}
+        <LiveTime />
+        <Styles.LapTimes ref={lapTimesContainer}>
+          <Styles.H3>BEST LAPS</Styles.H3>
+          {lapTimes.map((value, index) => (
+            <LapTime index={index} key={index} value={value / 1000} />
+          ))}
+        </Styles.LapTimes>
       </Styles.Times>
       <Styles.Ui>
-        <Button onClick={() => updateMode("camera")}>Quit</Button>
+        <Button onClick={() => setOpen(false)}>Quit</Button>
       </Styles.Ui>
     </Styles.Wrapper>
   );
