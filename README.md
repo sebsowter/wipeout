@@ -1,46 +1,40 @@
-# Getting Started with Create React App
+![logo](https://github.com/sebsowter/wipeout/assets/7384630/698b7b05-3809-49e9-badf-d665e1db4f6d)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Wipeout in WebGL
 
-## Available Scripts
+Welcome, this is an experimental WIP WebGL project. The intention is to create a raceable track in the style of the PS1 game Wipeout. This has been built with [react-three-fiber](https://docs.pmnd.rs/react-three-fiber). The prototype version, before moving to `react-three-fiber`, is on the [vanilla branch](https://github.com/sebsowter/wipeout/tree/vanilla).
 
-In the project directory, you can run:
+## Tasks
 
-### `npm start`
+```bash
+# install project
+npm i
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+# run project locally
+npm start
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+# create production build of project
+npm run build
 
-### `npm test`
+# launch the test runner
+npm run test
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## TODO
 
-### `npm run build`
+- [x] Refactor to use `react-three-fiber`
+- [ ] Model terrain in Blender - currently uses a rudimentary height map to generate terrain which is limitting
+- [x] Use .json format for vehicle model instead of .obj
+- [ ] Vehicle model and texture improvements
+- [ ] Add effects - motor light trails and lense flairs
+- [x] Add audio mute button
+- [ ] Environmental model and texture improvements
+- [ ] Sound engineering improvements
+- [ ] Fullscreen button for web
+- [ ] Mobile controls
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Demo
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+[View the demo on GitHub](https://sebsowter.github.io/wipeout/)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+[Or play on itch.io](https://calabi.itch.io/antigravity?secret=MqnRPz7h3nEsAqRaEp9YNyXhfXo)
