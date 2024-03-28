@@ -2,6 +2,7 @@
   "name": "wipeout",
   "version": "0.1.0",
   "private": true,
+  "homepage": "./",
   "dependencies": {
     "@gsap/react": "^2.1.0",
     "@react-three/drei": "^9.102.6",
@@ -28,7 +29,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy": "react-scripts build && gh-pages"
+    "deploy": "react-scripts build && gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
