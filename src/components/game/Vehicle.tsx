@@ -14,7 +14,7 @@ export const Vehicle = forwardRef<THREE.Mesh>((_, ref) => {
   material.transparent = true;
 
   return (
-    <mesh position={new THREE.Vector3(0, 0.4, 0)} ref={ref}>
+    <mesh position={[0, 0.4, 0]} ref={ref}>
       <mesh geometry={geometry} material={material} rotation={[-Math.PI / 2, 0, 0]} scale={0.03} />
     </mesh>
   );

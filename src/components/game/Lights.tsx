@@ -41,7 +41,7 @@ export function Lights() {
     }
 
     return () => clearTimeout(timeout);
-  }, [lights, mode, texture1, texture2, texture3, updateLights]);
+  }, [go, lights, mode, ready, texture1, texture2, texture3, updateLights]);
 
   return (
     <group position={[16, 0, -2]}>

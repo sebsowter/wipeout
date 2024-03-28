@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 export interface BuildingProps {
-  position: THREE.Vector3;
+  position: [number, number, number];
   rotateY?: number;
 }
 
@@ -31,7 +31,7 @@ export function Building({ position, rotateY }: BuildingProps) {
 
   geometry.attributes.position.needsUpdate = true;
   geometry.computeVertexNormals();
-  //geometry.computeBoundingSphere();
+  geometry.computeBoundingSphere();
 
   return (
     <group position={position} rotation-y={rotateY}>
@@ -39,7 +39,7 @@ export function Building({ position, rotateY }: BuildingProps) {
         geometry={geometry}
         material={[materialBlack, materialBlack, materialGrey, materialBlack, materialBlack, materialBlack]}
       />
-      <mesh position={new THREE.Vector3(-6, 7, 0)} rotation-y={Math.PI / 2}>
+      <mesh position={[-6, 7, 0]} rotation-y={Math.PI / 2}>
         <planeGeometry args={[32, 2]} />
         <meshBasicMaterial color={0x000000} />
       </mesh>

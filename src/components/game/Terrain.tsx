@@ -48,9 +48,7 @@ export function Terrain() {
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();
 
-    return (
-      <mesh geometry={geometry} material={material} position={new THREE.Vector3(0, -2, 0)} rotation-x={-Math.PI / 2} />
-    );
+    return <mesh geometry={geometry} material={material} position={[0, -2, 0]} rotation-x={-Math.PI / 2} />;
   }
 
   return null;
