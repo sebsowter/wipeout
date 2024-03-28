@@ -5,10 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "../../../state";
 import { Button } from "../../atoms/Button";
 import { LapTime } from "../../atoms/LapTime";
+import { Mute } from "../../atoms/Mute";
 import { LiveTime } from "../LiveTime";
 
 import * as Styles from "./PlayerHud.styles";
-import { Mute } from "../../atoms/Mute";
 
 export function PlayerHud() {
   const { isMuted, lapTimes, mode, updateMode, updateMuted } = useGameStore();
@@ -38,12 +38,14 @@ export function PlayerHud() {
       <Styles.Times>
         <Styles.H3>LAP TIME</Styles.H3>
         <LiveTime />
-        <Styles.LapTimes ref={lapTimesContainer}>
-          <Styles.H3>BEST LAPS</Styles.H3>
-          {lapTimes.map((value, index) => (
-            <LapTime index={index} key={index} value={value / 1000} />
-          ))}
-        </Styles.LapTimes>
+        {lapTimes.length && (
+          <Styles.LapTimes ref={lapTimesContainer}>
+            <Styles.H3>BEST LAPS</Styles.H3>
+            {lapTimes.map((value, index) => (
+              <LapTime index={index} key={index} value={value / 1000} />
+            ))}
+          </Styles.LapTimes>
+        )}
       </Styles.Times>
       <Styles.Ui>
         <Button onClick={() => setOpen(false)}>QUIT</Button>
